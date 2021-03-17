@@ -101,7 +101,7 @@ def send_movement_command_YAW(heading):
     
     #heading 0 to 360 degree. if negative then ccw 
     
-    print("Sending YAW movement command with heading: %i v_x(forward/backward): %i v_height: %i" % (heading,velocity_y,velocity_z))
+    print("Sending YAW movement command with heading: %i" % heading)
 
     if heading < 0:
         heading = heading*-1
@@ -120,7 +120,7 @@ def send_movement_command_YAW(heading):
 
     # send command to vehicle
     vehicle.send_mavlink(msg)
-    Vehicle.commands.upload()
+    #Vehicle.commands.flush()
 
 def send_movement_command_XYZ(velocity_x, velocity_y, velocity_z):
     global vehicle
@@ -142,5 +142,5 @@ def send_movement_command_XYZ(velocity_x, velocity_y, velocity_z):
         0, 0)    
 
     vehicle.send_mavlink(msg)
-    Vehicle.commands.upload()
+    #Vehicle.commands.flush()
 
