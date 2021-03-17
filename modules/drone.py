@@ -6,7 +6,10 @@ vehicle = None
 def connect_drone(connection_string):
     global vehicle
     if vehicle == None:
-        vehicle = connect('/dev/ttyACM0', wait_ready=True, baud=57600)
+        vehicle = connect(connection_string, wait_ready=True, baud=57600)
+
+def disconnect_drone():
+    vehicle.close()
 
 def get_version():
     global vehicle
@@ -82,29 +85,62 @@ def arm_and_takeoff(aTargetAltitude):
             break
         time.sleep(1)
 
-def send_movement_command_YAW_SPEED_HEIGHT(velocity):
+def land():
+    global vehicle
+    print("Setting LAND mode...")
+    vehicle.mode = VehicleMode("LAND")
 
+def return_to_launch_location():
+    #carefull with using this! It wont detect obstacles!
+    vehicle.mode = VehicleMode("RTL")
+
+def send_movement_command_YAW(heading):
+    global vehicle
+    speed = 0 
+    direction = 1 #direction -1 ccw, 1 cw
+    
+    #heading 0 to 360 degree. if negative then ccw 
+    
+    print("Sending YAW movement command with heading: %i v_x(forward/backward): %i v_height: %i" % (heading,velocity_y,velocity_z))
+
+    if heading < 0:
+        heading = heading*-1
+        direction = -1
+
+    #point drone into correct heading 
+    msg = vehicle.message_factory.command_long_encode(
+        0, 0,       
+        mavutil.mavlink.MAV_CMD_CONDITION_YAW, 
+        0,          
+        heading,    
+        speed,      #speed deg/s
+        direction,  
+        1,          #relative offset 1
+        0, 0, 0)    
+
+    # send command to vehicle
+    vehicle.send_mavlink(msg)
+    Vehicle.commands.upload()
 
 def send_movement_command_XYZ(velocity_x, velocity_y, velocity_z):
     global vehicle
 
+    #velocity_x positive = forward. negative = backwards
+    #velocity_y positive = right. negative = left
+    #velocity_z positive = down. negative = up (Yes really!)
+
+    print("Sending XYZ movement command with v_x(forward/backward): %i v_y(right/left): %i v_z(height): %i" % (velocity_x,velocity_y,velocity_z))
+
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
-        0,       # time_boot_ms (not used)
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # relative to drone heading
-        0b0000111111000111, # type_mask (only speeds enabled)
-        0, 0, 0, # x, y, z positions (not used)
-        velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
-        0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+        0,      
+        0, 0,    
+        mavutil.mavlink.MAV_FRAME_BODY_NED, # relative to drone heading
+        0b0000111111000111, 
+        0, 0, 0,
+        velocity_x, velocity_y, velocity_z, 
+        0, 0, 0, 
+        0, 0)    
 
     vehicle.send_mavlink(msg)
+    Vehicle.commands.upload()
 
-
-
-
-SOUTH=-2
-UP=-0.5   #NOTE: up is negative!
-
-#Fly south and up.
-send_ned_velocity(SOUTH,0,UP)
