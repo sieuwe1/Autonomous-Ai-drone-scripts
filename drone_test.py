@@ -4,14 +4,15 @@ sys.path.insert(1, 'modules')
 import drone
 
 #config 
+height = 10
 speed = 3 #m/s
 size = 165 #10 meter  
 #end config
 
-#drone.connect_drone('/dev/ttyACM0')
-drone.connect_drone('127.0.0.1:14551')
+drone.connect_drone('/dev/ttyACM0')
+#drone.connect_drone('127.0.0.1:14551')
 
-drone.arm_and_takeoff(10)
+drone.arm_and_takeoff(height)
 
 time.sleep(5)
 
