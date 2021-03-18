@@ -105,7 +105,7 @@ def send_movement_command_YAW(heading):
     
     #heading 0 to 360 degree. if negative then ccw 
     
-    print("Sending YAW movement command with heading: %i" % heading)
+    print("Sending YAW movement command with heading: %f" % heading)
 
     if heading < 0:
         heading = heading*-1
@@ -133,7 +133,7 @@ def send_movement_command_XYZ(velocity_x, velocity_y, velocity_z):
     #velocity_y positive = right. negative = left
     #velocity_z positive = down. negative = up (Yes really!)
 
-    print("Sending XYZ movement command with v_x(forward/backward): %i v_y(right/left): %i v_z(height): %i" % (velocity_x,velocity_y,velocity_z))
+    print("Sending XYZ movement command with v_x(forward/backward): %f v_y(right/left): %f v_z(height): %f" % (velocity_x,velocity_y,velocity_z))
 
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,      

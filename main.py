@@ -8,27 +8,25 @@ import detector_mobilenet as detector
 import drone
 import vision
 
-vis = True
-
 print("connecting lidar")
 lidar.connect_lidar("/dev/ttyTHS1")
-
-#lidar.read_lidar_distance()
-#lidar.read_lidar_temperature()
 
 print("setting up detector")
 detector.initialize_detector()
 
 print("connecting to drone")
-drone.connect_drone('/dev/ttyACM0')
+#drone.connect_drone('/dev/ttyACM0')
+drone.connect_drone('127.0.0.1:14551')
 
 print(drone.get_EKF_status())
 print(drone.get_battery_info())
 print(drone.get_version())
 
-max_height = 4
-max_speed = 3 #m/s
-max_rotation = 20 #degree
+follow_distance = 2 #meter
+max_height = 0.5
+max_speed = 5 #m/s
+max_rotation = 15 #degree
+vis = True 
 
 x_scalar = max_rotation / 620
 z_scalar = max_speed / 8
@@ -50,19 +48,21 @@ def track():
             x_delta = vision.get_single_axis_delta(drone_image_center[0],person_to_track_center[0])
             y_delta = vision.get_single_axis_delta(drone_image_center[1],person_to_track_center[1])
 
-            z_delta = lidar.read_lidar_distance()[0]
+            lidar_distance = lidar.read_lidar_distance()[0]
 
-           
+            z_delta = lidar_distance - follow_distance
+
             #control section 
             #x_delta max=620 min= -620
             #y_delta max=360 min= -360
-            #z_delta max=8   min= 0.2
+            #z_delta max=8   min= 2
 
             yaw_command = x_delta * x_scalar
+            #if z_delta > follow_distance:
             velocity_x_command = z_delta * z_scalar
+            #else:
+            #    velocity_x_command = 0 
 
-            #print(yaw_command)
-            #print(velocity_x_command)
             drone.send_movement_command_YAW(yaw_command)
 
             drone.send_movement_command_XYZ(velocity_x_command,0,0)
@@ -101,6 +101,9 @@ def search():
         print("searching: " + str(len(detections)))
         if len(detections) > 0:
             return "track"
+        
+        if time.time() - start > 10:
+            drone.send_movement_command_YAW(1)
 
         if vis:
             cv2.putText(image, "searching target. Time left: " + str(40 - (time.time() - start)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
