@@ -7,6 +7,7 @@ def connect_drone(connection_string):
     global vehicle
     if vehicle == None:
         vehicle = connect(connection_string, wait_ready=True, baud=57600)
+    print("drone connected")
 
 def disconnect_drone():
     vehicle.close()
@@ -38,6 +39,9 @@ def get_mode():
 def get_home_location():
     global vehicle
     return vehicle.home_location
+
+def get_EKF_status():
+    return vehicle.ekf_ok
 
 def set_gimbal_angle(angle):
     global vehicle

@@ -15,6 +15,9 @@ def initialize_detector():
 def get_image_size():
 	return camera.GetWidth(), camera.GetHeight()
 
+def close_camera():
+	camera.Close()
+
 def get_detections():
 	person_detections = []
 	img = camera.Capture()
@@ -25,5 +28,4 @@ def get_detections():
 	fps = net.GetNetworkFPS()
 
 	return person_detections, fps, jetson.utils.cudaToNumpy(img)
-
 
