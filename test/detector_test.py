@@ -1,20 +1,15 @@
-import jetson.inference
-import jetson.utils
+import sys, time
+sys.path.insert(1, 'modules')
+
 import cv2
-import numpy as np
 
-net = jetson.inference.detectNet("ssd-mobilenet-v2")
-camera = jetson.utils.videoSource("csi://0")      # '/dev/video0' for V4L2
-display = jetson.utils.videoOutput("display://0") # 'my_video.mp4' for file ("display://0")
+import detector_mobilenet as detector
 
-while display.IsStreaming():
-	img = camera.Capture()
-	detections = net.Detect(img)
-	jetson.utils.cudaDeviceSynchronize()
-	aimg = jetson.utils.cudaToNumpy (img, 1280, 720, 4)
-	aimg1 = cv2.cvtColor (aimg.astype (np.uint8), cv2.COLOR_RGBA2BGR)
-	
-	cv2.imshow("outputa",aimg1)
-	#https://dronekit-python.readthedocs.io/en/latest/guide/copter/guided_mode.html
-	#display.Render(img)
-	display.SetStatus("Object Detection | Network {:.0f} FPS".format(net.GetNetworkFPS()))
+print("setting up detector")
+detector.initialize_detector()
+
+while True:
+    detections, fps, image = detector.get_detections()
+    cv2.putText(image, str(fps), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+    cv2.imshow("out", img)
+    cv2.waitKey(1)

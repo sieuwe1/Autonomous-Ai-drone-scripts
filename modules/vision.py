@@ -20,7 +20,13 @@ def getDelta(point1,point2):
 def get_single_axis_delta(value1,value2):
     return value2 - value1
 
+def point_in_rectangle(point, left, right, top, bottom):
+    if left < point[0] and point[0] < right and top < point[1] and point[1] < bottom:
+        return True
+    else:
+        return False
 
+#unused code below \/
 def process(output_img):
 
     gray = cv2.cvtColor(output_img, cv2.COLOR_BGR2GRAY)	
