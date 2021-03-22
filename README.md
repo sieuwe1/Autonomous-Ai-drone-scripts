@@ -21,3 +21,6 @@
 - pyserial
 
 ### Hardware 
+![Alt Text](https://github.com/sieuwe1/Autonomous-Ai-drone-scripts/blob/main/demo_media/216C5829-F7F0-4B80-9CDA-27B1BF304F7F.jpeg)
+
+![Alt Text](https://github.com/sieuwe1/Autonomous-Ai-drone-scripts/blob/main/demo_media/F819741B-72A1-48B6-A64A-C11C24E5973E.jpeg)
