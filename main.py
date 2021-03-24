@@ -78,7 +78,8 @@ def track():
             yaw_command = 0
 
             if movement_yaw_en:
-                yaw_command = x_delta * x_scalar # should be commented out if pid controlling
+                yaw_command = getMovementJawAngle()
+                #yaw_command = x_delta * x_scalar # should be commented out if pid controlling
                 # yaw_command = pid(x_delta)
                 drone.send_movement_command_YAW(yaw_command)
 
