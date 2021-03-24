@@ -1,31 +1,35 @@
 from simple_pid import PID
+import time
 import logging
+import drone
 
-max_rotation = 8
-x_scalar = max_rotation / 460
 movementJawAngle = 0
 inputValue = 0
-debug = True
+debug_enable = True
+control_loop_active = True
 
 # PID_Config Yaw
 
-pid = PID(x_scalar, 0.05, 0, setpoint=0)
-pid.output_limits(-15, 15)
-pid.sample_time = 0.05
+pid = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
+pid.output_limits = (-15, 15)
 p, i, d = pid.components  # The separate terms are now in p, i, d
 
 # end PID_Config_Yaw
 
+debug_file = open("run2.txt", "a")
+debug_file.write("P: I: D: Error: command:\n")
 
 # Logging_config
-if debug == True:
-    logging.basicConfig(filename='PIDDebug.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
-    logging.debug('p: ', p)
-    logging.debug('i: ', i)
-    logging.debug('d: ', d)
-    logging.debug('movementJawAngle: ', movementJawAngle)
+def debug_writer():
+    global debug_file
+    debug_file.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValue) + "," + str(movementJawAngle) + "\n")
 
 # end Logging_Config
+
+def close_control_loop():
+    global control_loop_active, debug_file
+    control_loop_active = False
+    debug_file.close()
 
 def getMovementJawAngle():
     global movementJawAngle
@@ -36,6 +40,12 @@ def setXdelta(XDelta):
     inputValue = XDelta
 
 def main():
-
-    while True:
+    global movementJawAngle
+    while control_loop_active:
         movementJawAngle = pid(inputValue)
+
+        drone.send_movement_command_YAW(movementJawAngle)
+
+        if debug_enable == True:
+            debug_writer()
+        time.sleep(1/20)

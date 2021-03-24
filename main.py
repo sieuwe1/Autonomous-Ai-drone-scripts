@@ -2,12 +2,14 @@ import sys, time
 sys.path.insert(1, 'modules')
 
 import cv2
+import threading
+import keyboard
+
 #from simple_pid import PID
 import lidar
 import detector_mobilenet as detector
 import drone
 import vision
-import threading
 from control import *
 
 print("connecting lidar")
@@ -30,7 +32,7 @@ max_height =  3  #m
 max_speed = 3 #m/s
 max_rotation = 8 #degree
 vis = True
-movement_x_en = True
+movement_x_en = False
 movement_yaw_en = True
 #end config
 
@@ -41,15 +43,22 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/run3.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter("debug/run_test_pid_control2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
 controlThread = threading.Thread(target=main)
 controlThread.start()
 
 def track():
+    global state
     print("State = TRACKING")
 
     while True:
+
+        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print("closing because of press Q")
+            land()
+            break # finishing the loop
+
         detections, fps, image = detector.get_detections()
 
         if len(detections) > 0:
@@ -78,10 +87,8 @@ def track():
             yaw_command = 0
 
             if movement_yaw_en:
+                setXdelta(x_delta)
                 yaw_command = getMovementJawAngle()
-                #yaw_command = x_delta * x_scalar # should be commented out if pid controlling
-                # yaw_command = pid(x_delta)
-                drone.send_movement_command_YAW(yaw_command)
 
             if vis:
                 #draw lidar distance
@@ -140,12 +147,14 @@ def land():
     print("State = LAND")
     drone.land
     detector.close_camera()
+    close_control_loop()
+    #controlThread.join()
     sys.exit(0)
 
 def visualize(img):
-    #cv2.imshow("out", img)
+   # cv2.imshow("out", img)
     
-    #cv2.waitKey(1)
+   # cv2.waitKey(1)
     debug_image_writer.write(img)
     return
 
