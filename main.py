@@ -81,8 +81,10 @@ def track():
             velocity_x_command = 0
             if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
                 z_delta = lidar_distance - follow_distance
-                velocity_x_command = z_delta * z_scalar
-                drone.send_movement_command_XYZ(velocity_x_command,0,0)
+                setZDelta(z_delta)
+                velocity_x_command = getMovementVelocityXCommand()
+                #velocity_x_command = z_delta * z_scalar
+                #drone.send_movement_command_XYZ(velocity_x_command,0,0)
 
             yaw_command = 0
 
