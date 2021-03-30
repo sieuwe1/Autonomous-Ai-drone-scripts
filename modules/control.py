@@ -12,6 +12,7 @@ movementJawAngle = 0
 inputValueYaw = 0
 debug_enableYaw = True
 Yaw_PID_Active = True
+file_path = ""
 
 #velocity
 max_speed = 3 #m/s
@@ -39,10 +40,10 @@ p, i, d = pidVelocityX.components  # The separate terms are now in p, i, d
 
 # end PID_Config Velocity_X
 
-debug_fileYaw = open("run2.txt", "a")
+debug_fileYaw = open(file_path + "_yaw.txt", "a")
 debug_fileYaw.write("P: I: D: Error: command:\n")
 
-debug_file = open("PID_run_2.txt", "a")
+debug_file = open(file_path + "_velocity.txt", "a")
 debug_file.write("P: I: D: Error: command:\n")
 
 # Logging_config
@@ -78,8 +79,11 @@ def setZDelta(ZDelta):
     global inputValueVelocityX
     inputValueVelocityX = ZDelta
 
-def main():
-    global movementJawAngle, velocityXCommand
+def main(filename):
+    global movementJawAngle, velocityXCommand, file_path
+
+    file_path = filename
+
     while control_loop_active:
 
         if Yaw_PID_Active == True:
@@ -89,19 +93,19 @@ def main():
         if debug_enableYaw == True:
             debug_writerYaw()
 
-        if Yaw_PID_Active == False:
-            movementJawAngle = inputValueYaw * x_scalar
-            drone.send_movement_command_YAW(movementJawAngle)
+       # if Yaw_PID_Active == False:
+       #     movementJawAngle = inputValueYaw * x_scalar
+       #     drone.send_movement_command_YAW(movementJawAngle)
 
-        if Velocity_X_PID_Active == True:
-            velocityXCommand = pidVelocityX(inputValueVelocityX)
-            drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
+      #  if Velocity_X_PID_Active == True:
+      #      velocityXCommand = pidVelocityX(inputValueVelocityX)
+      #      drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
 
-        if debug_enableVelocityX == True:
-            debug_writerVelocityX()
+       # if debug_enableVelocityX == True:
+       #     debug_writerVelocityX()
 
-        if Velocity_X_PID_Active == False:
-            velocityXCommand = inputValueVelocityX * z_scalar
-            drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
+       # if Velocity_X_PID_Active == False:
+       #     velocityXCommand = inputValueVelocityX * z_scalar
+       #     drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
 
-        time.sleep(1/20)
+        time.sleep(1)

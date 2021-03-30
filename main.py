@@ -1,5 +1,6 @@
 import sys, time
 sys.path.insert(1, 'modules')
+import argparse
 
 import cv2
 import threading
@@ -12,6 +13,10 @@ import drone
 import vision
 from control import *
 
+parser = argparse.ArgumentParser(description='Drive autonomous')
+parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug message name')
+args = parser.parse_args()
+
 print("connecting lidar")
 lidar.connect_lidar("/dev/ttyTHS1")
 
@@ -19,8 +24,8 @@ print("setting up detector")
 detector.initialize_detector()
 
 print("connecting to drone")
-#drone.connect_drone('/dev/ttyACM0')
-drone.connect_drone('127.0.0.1:14551')
+drone.connect_drone('/dev/ttyACM0')
+#drone.connect_drone('127.0.0.1:14551')
 
 print(drone.get_EKF_status())
 print(drone.get_battery_info())
@@ -28,7 +33,7 @@ print(drone.get_version())
 
 #config
 follow_distance =1.5 #meter
-max_height =  3  #m
+max_height =  2.5  #m
 max_speed = 3 #m/s
 max_rotation = 8 #degree
 vis = True
@@ -43,9 +48,9 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/PID_run_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter(args.debug_path + ".avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
-controlThread = threading.Thread(target=main)
+controlThread = threading.Thread(target=main, args=(args.debug_path,))
 controlThread.start()
 
 def track():
@@ -154,10 +159,10 @@ def land():
     sys.exit(0)
 
 def visualize(img):
-    cv2.imshow("out", img)
+   # cv2.imshow("out", img)
     
-    cv2.waitKey(1)
-    #debug_image_writer.write(img)
+   # cv2.waitKey(1)
+    debug_image_writer.write(img)
     return
 
 
