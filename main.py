@@ -19,8 +19,8 @@ print("setting up detector")
 detector.initialize_detector()
 
 print("connecting to drone")
-drone.connect_drone('/dev/ttyACM0')
-#drone.connect_drone('127.0.0.1:14551')
+#drone.connect_drone('/dev/ttyACM0')
+drone.connect_drone('127.0.0.1:14551')
 
 print(drone.get_EKF_status())
 print(drone.get_battery_info())
@@ -43,7 +43,7 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/run_test_pid_control2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter("debug/PID_run_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
 controlThread = threading.Thread(target=main)
 controlThread.start()
@@ -152,10 +152,10 @@ def land():
     sys.exit(0)
 
 def visualize(img):
-   # cv2.imshow("out", img)
+    cv2.imshow("out", img)
     
-   # cv2.waitKey(1)
-    debug_image_writer.write(img)
+    cv2.waitKey(1)
+    #debug_image_writer.write(img)
     return
 
 

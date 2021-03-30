@@ -16,7 +16,7 @@ p, i, d = pid.components  # The separate terms are now in p, i, d
 
 # end PID_Config_Yaw
 
-debug_file = open("run2.txt", "a")
+debug_file = open("PID_run_2.txt", "a")
 debug_file.write("P: I: D: Error: command:\n")
 
 # Logging_config
@@ -42,10 +42,10 @@ def setXdelta(XDelta):
 def main():
     global movementJawAngle
     while control_loop_active:
-        movementJawAngle = pid(inputValue)
+        movementJawAngle = (pid(inputValue) * -1)
 
         drone.send_movement_command_YAW(movementJawAngle)
 
         if debug_enable == True:
             debug_writer()
-        time.sleep(1/20)
+        time.sleep(0.05)
