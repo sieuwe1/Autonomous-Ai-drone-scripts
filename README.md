@@ -7,7 +7,7 @@
 #### Our quad copter is fitted with a Jetson Nano running advanced Ai models and algorithms real time on the edge on the quad copter itself. This makes our quad copter able to work fully autonomsly without the need of a data connection to offload heavy workloads. Because of optimizations our algorithms can work in the compuational limited envoirement of the Jetson Nano!
 
 ### status
-#### Work is still being done and more will come!
+#### Work is still being done and more will come! All code is experimental and not 100% working yet. please use any code with caution!
 
 ### scripts
 #### For now we have a person follow script which can autonomsly follow a person using a live camera feed and a Lidar.
