@@ -3,6 +3,8 @@ import time
 import drone
 
 control_loop_active = True
+state = ""
+
 #Yaw
 max_rotation = 8 #degree
 x_scalar = max_rotation / 460
@@ -16,7 +18,6 @@ file_path = ""
 #velocity
 max_speed = 3 #m/s
 z_scalar = max_speed / 10
-
 velocityXCommand = 0
 inputValueVelocityX = 0
 debug_enableVelocityX = False
@@ -56,6 +57,7 @@ def debug_writerVelocityX():
 
 # end Logging_Config
 
+# control functions
 def close_control_loop():
     global control_loop_active, debug_fileYaw, debug_fileVelocityX
     control_loop_active = False
@@ -78,33 +80,47 @@ def setZDelta(ZDelta):
     global inputValueVelocityX
     inputValueVelocityX = ZDelta
 
+def set_system_state(current_state):
+    global state
+    state = current_state
+# end control functions
+
+#drone functions
+def arm_and_takeoff(max_height):
+    drone.arm_and_takeoff(max_height)
+
+def land():
+    drone.land()
+
+def print_drone_report():
+    print(drone.get_EKF_status())
+    print(drone.get_battery_info())
+    print(drone.get_version())
+#end drone functions
+
 def main(filename):
     global movementJawAngle, velocityXCommand, file_path
 
     file_path = filename
 
     while control_loop_active:
+        
+        if state == "track":
+            if inputValueYaw != 0:          #only start control if drone and camera is ready
 
-        if Yaw_PID_Active == True:
-            movementJawAngle = (pidYaw(inputValueYaw) * -1)
-            drone.send_movement_command_YAW(movementJawAngle)
+                movementJawAngle = (pidYaw(inputValueYaw) * -1)
+                drone.send_movement_command_YAW(movementJawAngle)
 
-        if debug_enableYaw == True:
-            debug_writerYaw()
+                debug_writerYaw()
 
-       # if Yaw_PID_Active == False:
-       #     movementJawAngle = inputValueYaw * x_scalar
-       #     drone.send_movement_command_YAW(movementJawAngle)
+        elif state == "search":
+            start = time.time()
+            while time.time() - start < 40:
+                if time.time() - start > 10:
+                    drone.send_movement_command_YAW(1)
 
-      #  if Velocity_X_PID_Active == True:
-      #      velocityXCommand = pidVelocityX(inputValueVelocityX)
-      #      drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
+        else:
+            print("control waiting for state update")
+        
+        time.sleep(0.1) # 10hz
 
-       # if debug_enableVelocityX == True:
-       #     debug_writerVelocityX()
-
-       # if Velocity_X_PID_Active == False:
-       #     velocityXCommand = inputValueVelocityX * z_scalar
-       #     drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
-
-        time.sleep(1)

@@ -1,13 +1,20 @@
 import sys, time
 sys.path.insert(1, 'modules')
+import argparse
 
 import cv2
-from simple_pid import PID
+import threading
+import keyboard
 
+#from simple_pid import PID
 import lidar
 import detector_mobilenet as detector
-import drone
 import vision
+import control2 as control
+
+parser = argparse.ArgumentParser(description='Drive autonomous')
+parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug message name')
+args = parser.parse_args()
 
 print("connecting lidar")
 lidar.connect_lidar("/dev/ttyTHS1")
@@ -19,13 +26,9 @@ print("connecting to drone")
 drone.connect_drone('/dev/ttyACM0')
 #drone.connect_drone('127.0.0.1:14551')
 
-print(drone.get_EKF_status())
-print(drone.get_battery_info())
-print(drone.get_version())
-
 #config
 follow_distance =1.5 #meter
-max_height =  3  #m
+max_height =  2.5  #m
 max_speed = 3 #m/s
 max_rotation = 8 #degree
 vis = True
@@ -33,9 +36,6 @@ movement_x_en = False
 movement_yaw_en = True
 #end config
 
-pidYaw = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
-pidYaw.output_limits = (-15, 15)
-p, i, d = pidYaw.components  # The separate terms are now in p, i, d
 
 x_scalar = max_rotation / 460 
 z_scalar = max_speed / 10
@@ -43,22 +43,21 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/run3.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter(args.debug_path + ".avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
-
-debug_fileYaw = open("PID_IN_MAIN_yaw.txt", "a")
-debug_fileYaw.write("P: I: D: Error: command:\n")
-
-# Logging_config
-def debug_writerYaw(inputValueYaw,movementJawAngle):
-    global debug_fileYaw
-    debug_fileYaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
-
+controlThread = threading.Thread(target=control.main, args=(args.debug_path,))
 
 def track():
+    global state
     print("State = TRACKING")
 
     while True:
+
+        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print("closing because of press Q")
+            land()
+            break # finishing the loop
+
         detections, fps, image = detector.get_detections()
 
         if len(detections) > 0:
@@ -81,14 +80,17 @@ def track():
             velocity_x_command = 0
             #if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
             #    z_delta = lidar_distance - follow_distance
-            #    velocity_x_command = z_delta * z_scalar
-            #    drone.send_movement_command_XYZ(velocity_x_command,0,0)
+            #    setZDelta(z_delta)
+            #    velocity_x_command = getMovementVelocityXCommand()
+                #velocity_x_command = z_delta * z_scalar
+                #drone.send_movement_command_XYZ(velocity_x_command,0,0)
+                
 
             yaw_command = 0
+
             if movement_yaw_en:
-                yaw_command = (pidYaw(y_delta) * -1)
-                debug_writerYaw(inputValueYaw, yaw_command)
-                drone.send_movement_command_YAW(yaw_command)
+                control.setXdelta(x_delta)
+                yaw_command = control.getMovementJawAngle()
 
             if vis:
                 #draw lidar distance
@@ -123,14 +125,14 @@ def track():
 def search():
     print("State = SEARCH")
     start = time.time()
+    
     while time.time() - start < 40:
         detections, fps, image = detector.get_detections()
+        
         print("searching: " + str(len(detections)))
+        
         if len(detections) > 0:
             return "track"
-        
-        if time.time() - start > 10:
-            drone.send_movement_command_YAW(1)
 
         if vis:
             cv2.putText(image, "searching target. Time left: " + str(40 - (time.time() - start)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
@@ -139,30 +141,37 @@ def search():
     return "land"
 
 def takeoff():
+    control.print_drone_report()
     print("State = TAKEOFF")
-    drone.arm_and_takeoff(max_height)
+    control.arm_and_takeoff(max_height) #start control when drone is ready
+    controlThread.start()
     return "search"
 
 def land():
     print("State = LAND")
-    drone.land
+    control.close_control_loop()
+    control.land()
     detector.close_camera()
+    #controlThread.join()
     sys.exit(0)
 
 def visualize(img):
-    #cv2.imshow("out", img)
+   # cv2.imshow("out", img)
     
-    #cv2.waitKey(1)
+   # cv2.waitKey(1)
     debug_image_writer.write(img)
     return
+
 
 while True:
     # main program loop
 
     if state == "track":
+        control.set_system_state("track")
         state = track()
 
     elif state == "search":
+        control.set_system_state("search")
         state = search()
     
     elif state == "takeoff":
@@ -170,3 +179,4 @@ while True:
 
     elif state == "land":
         state = land()
+    
