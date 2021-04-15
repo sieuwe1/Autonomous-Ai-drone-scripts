@@ -33,7 +33,7 @@ movement_x_en = False
 movement_yaw_en = True
 #end config
 
-pidYaw = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
+pidYaw = PID(0.02, 0, 0, setpoint=0)  #I = 0.001
 pidYaw.output_limits = (-15, 15)
 p, i, d = pidYaw.components  # The separate terms are now in p, i, d
 
@@ -43,10 +43,10 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/run3.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter("debug/PID_MAIN_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
 
-debug_fileYaw = open("PID_IN_MAIN_yaw.txt", "a")
+debug_fileYaw = open("PID_IN_MAIN_2_yaw.txt", "a")
 debug_fileYaw.write("P: I: D: Error: command:\n")
 
 # Logging_config
@@ -86,8 +86,8 @@ def track():
 
             yaw_command = 0
             if movement_yaw_en:
-                yaw_command = (pidYaw(y_delta) * -1)
-                debug_writerYaw(inputValueYaw, yaw_command)
+                yaw_command = (pidYaw(x_delta) * -1)
+                debug_writerYaw(x_delta, yaw_command)
                 drone.send_movement_command_YAW(yaw_command)
 
             if vis:

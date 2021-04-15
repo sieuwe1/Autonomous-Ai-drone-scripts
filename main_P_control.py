@@ -24,11 +24,11 @@ print(drone.get_version())
 
 #config
 follow_distance =1.5 #meter
-max_height =  3  #m
+max_height =  2.5  #m
 max_speed = 3 #m/s
 max_rotation = 8 #degree
 vis = True
-movement_x_en = True
+movement_x_en = False
 movement_yaw_en = True
 #end config
 
@@ -38,7 +38,17 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/run3.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter("debug/P_control_mian_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+
+
+#debug_fileYaw = open("P_IN_MAIN_2_yaw.txt", "a")
+#debug_fileYaw.write("Error: command:\n")
+
+# Logging_config
+#def debug_writerYaw(inputValueYaw,movementJawAngle):
+#    global debug_fileYaw
+#    debug_fileYaw.write(str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
+
 
 def track():
     print("State = TRACKING")
@@ -72,6 +82,7 @@ def track():
             yaw_command = 0
             if movement_yaw_en:
                 yaw_command = x_delta * x_scalar
+ #               debug_writerYaw(x_delta, yaw_command)
                 drone.send_movement_command_YAW(yaw_command)
 
             if vis:
