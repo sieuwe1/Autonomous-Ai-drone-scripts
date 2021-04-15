@@ -7,6 +7,7 @@ import lidar
 import detector_mobilenet as detector
 import drone
 import vision
+import deque
 
 print("connecting lidar")
 lidar.connect_lidar("/dev/ttyTHS1")
@@ -31,6 +32,10 @@ vis = True
 movement_x_en = True
 movement_yaw_en = True
 #end config
+
+maxlength = 5
+sum_moving_avg = 0
+de = collections.deque(maxlen=maxlength)
 
 x_scalar = max_rotation / 460 
 z_scalar = max_speed / 10
@@ -57,15 +62,19 @@ def track():
             lidar_on_target = vision.point_in_rectangle(drone_image_center,person_to_track.Left, person_to_track.Right, person_to_track.Top, person_to_track.Bottom) #check if lidar is pointed on target
 
             lidar_distance = lidar.read_lidar_distance()[0] # get lidar distance in meter
-            
+            de.append(lidar_distance)
             #control section 
             #x_delta max=620 min= -620
             #y_delta max=360 min= -360
             #z_delta max=8   min= 2
 
             velocity_x_command = 0
-            if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
-                z_delta = lidar_distance - follow_distance
+            if movement_x_en and lidar_distance > 0 and lidar_on_target : #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
+                for i in range(maxlength):
+                    sum_moving_avg += de[i]
+
+                lider_distance_moving_avg = sum_moving_avg / 5
+                z_delta = lidar_distance_moving_avg - follow_distance
                 velocity_x_command = z_delta * z_scalar
                 drone.send_movement_command_XYZ(velocity_x_command,0,0)
 
