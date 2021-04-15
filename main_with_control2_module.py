@@ -4,6 +4,7 @@ import argparse
 import cv2
 import threading
 import keyboard
+import collections
 
 #from simple_pid import PID
 from modules import lidar
@@ -15,29 +16,22 @@ parser = argparse.ArgumentParser(description='Drive autonomous')
 parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug message name')
 args = parser.parse_args()
 
-print("connecting lidar")
-lidar.connect_lidar("/dev/ttyTHS1")
-
-print("setting up detector")
-detector.initialize_detector()
-
-print("connecting to drone")
-control.connect_drone('/dev/ttyACM0')
-#drone.connect_drone('127.0.0.1:14551')
-
 #config
-follow_distance =1.5 #meter
-max_height =  2.5  #m
-max_speed = 3 #m/s
-max_rotation = 8 #degree
+MAX_FOLLOW_DIST =1.5 #meter
+MAX_ALT =  2.5  #m
+MAX_SPEED = 3 #m/s
+MAX_ROTATION_DEG = 8 #degree
+
 vis = True
 movement_x_en = False
 movement_yaw_en = True
 #end config
 
+MAX_MA_X_LEN = 5
+MAX_MA_Z_LEN = 5
+MA_X = collections.deque(maxlen=MAX_MA_X_LEN) #Moving Average X
+MA_Z = collections.deque(maxlen=MAX_MA_Z_LEN) #Moving Average Z
 
-x_scalar = max_rotation / 460 
-z_scalar = max_speed / 10
 state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
@@ -45,6 +39,17 @@ drone_image_center = (image_width / 2, image_height / 2)
 debug_image_writer = cv2.VideoWriter(args.debug_path + ".avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
 controlThread = threading.Thread(target=control.main, args=(args.debug_path,))
+
+def setup():
+    print("connecting lidar")
+    lidar.connect_lidar("/dev/ttyTHS1")
+
+    print("setting up detector")
+    detector.initialize_detector()
+
+    print("connecting to drone")
+    control.connect_drone('/dev/ttyACM0')
+    #drone.connect_drone('127.0.0.1:14551')
 
 def track():
     global state
@@ -71,23 +76,29 @@ def track():
 
             lidar_distance = lidar.read_lidar_distance()[0] # get lidar distance in meter
             
-            #control section 
-            #x_delta max=620 min= -620
-            #y_delta max=360 min= -360
-            #z_delta max=8   min= 2
+            MA_Z.append(lidar_distance)
+            MA_X.append(x_delta)
 
             velocity_x_command = 0
-            #if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
-            #    z_delta = lidar_distance - follow_distance
-            #    setZDelta(z_delta)
-            #    velocity_x_command = getMovementVelocityXCommand()
-                #velocity_x_command = z_delta * z_scalar
-                #drone.send_movement_command_XYZ(velocity_x_command,0,0)
-                
 
+            if movement_x_en and lidar_distance > 0 and lidar_on_target and len(MA_Z) > 0: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
+                
+                sum_moving_avg = 0
+                for i in range(MAX_MA_Z_LEN):
+                    sum_moving_avg += MA_Z[i]
+
+                lider_distance_moving_avg = sum_moving_avg / MAX_MA_Z_LEN
+                z_delta = lider_distance_moving_avg - MAX_FOLLOW_DIST
+
+                control.setXdelta(z_delta)
+
+                # debug_writerDepth(z_delta, velocity_x_command)
+                # drone.send_movement_command_XYZ(velocity_x_command,0,0)
+
+            #yaw command > PID and moving average
             yaw_command = 0
 
-            if movement_yaw_en:
+            if movement_yaw_en and len(MA_X) > 0:
                 control.setXdelta(x_delta)
                 yaw_command = control.getMovementJawAngle()
 
@@ -120,10 +131,6 @@ def track():
 
         else:
             return "search"
-
-def draw_tracking_information(image): ->
-
-
 def search():
     print("State = SEARCH")
     start = time.time()
@@ -145,7 +152,7 @@ def search():
 def takeoff():
     control.print_drone_report()
     print("State = TAKEOFF")
-    control.arm_and_takeoff(max_height) #start control when drone is ready
+    control.arm_and_takeoff(MAX_ALT) #start control when drone is ready
     controlThread.start()
     return "search"
 
@@ -165,6 +172,11 @@ def visualize(img):
     return
 
 
+
+
+
+setup()
+
 while True:
     # main program loop
 
@@ -182,3 +194,5 @@ while True:
     elif state == "land":
         state = land()
     
+
+

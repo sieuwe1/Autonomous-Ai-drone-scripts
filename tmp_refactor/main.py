@@ -7,10 +7,9 @@ import threading
 import keyboard
 
 #from simple_pid import PID
-import lidar
-import detector_mobilenet as detector
-import vision
-import control2 as control
+from modules import lidar, vision
+from modules import detector_mobilenet as detector
+from modules import control2 as control
 
 parser = argparse.ArgumentParser(description='Drive autonomous')
 parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug message name')
@@ -23,7 +22,7 @@ print("setting up detector")
 detector.initialize_detector()
 
 print("connecting to drone")
-drone.connect_drone('/dev/ttyACM0')
+control.connect_drone('/dev/ttyACM0')
 #drone.connect_drone('127.0.0.1:14551')
 
 #config
@@ -79,11 +78,11 @@ def track():
 
             velocity_x_command = 0
             #if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
-            #    z_delta = lidar_distance - follow_distance
-            #    setZDelta(z_delta)
-            #    velocity_x_command = getMovementVelocityXCommand()
-                #velocity_x_command = z_delta * z_scalar
-                #drone.send_movement_command_XYZ(velocity_x_command,0,0)
+            #   z_delta = lidar_distance - follow_distance
+            #   setZDelta(z_delta)
+            #   velocity_x_command = getMovementVelocityXCommand()
+            #   velocity_x_command = z_delta * z_scalar
+            #   drone.send_movement_command_XYZ(velocity_x_command,0,0)
                 
 
             yaw_command = 0

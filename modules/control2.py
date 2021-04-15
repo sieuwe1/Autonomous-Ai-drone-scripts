@@ -1,69 +1,81 @@
-from simple_pid import PID
-import time
 import drone
+from simple_pid import PID
+
+USE_PID_YAW = True
+USE_PID_ROLL = False
+
+MAX_SPEED = 3 #m/s
+
+P_YAW = 0.03
+I_YAW = 0
+D_YAW = 0
+
+P_ROLL = 0
+I_ROLL = 0
+D_ROLL = 0
+
+
+DEBUG_FILEPATH = ""
+
+
+control_loop_active = True
+pidYaw = None
+pidRoll = None
+movementJawAngle = 0
+inputValueYaw = 0
+inputValueVelocityX = 0
+velocityXCommand = 0
 
 control_loop_active = True
 state = ""
 
-#Yaw
-max_rotation = 8 #degree
-x_scalar = max_rotation / 460
-
-movementJawAngle = 0
-inputValueYaw = 0
-debug_enableYaw = True
-Yaw_PID_Active = True
-file_path = ""
-
-#velocity
-max_speed = 3 #m/s
-z_scalar = max_speed / 10
-velocityXCommand = 0
-inputValueVelocityX = 0
-debug_enableVelocityX = False
-Velocity_X_PID_Active = False
-
-# PID_Config Yaw
-
-pidYaw = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
-pidYaw.output_limits = (-15, 15)
-p, i, d = pidYaw.components  # The separate terms are now in p, i, d
+debug_yaw = None
+debug_velocity = None
 
 
-# end PID_Config Yaw
+def configure_PID():
+    """ Creates a new PID object depending on whether or not the PID or P is used """ 
+    if USE_PID_YAW:
+        pidYaw = PID(P_YAW, I_YAW, D_YAW, setpoint=0)  #I = 0.001
+        pidYaw.output_limits = (-15, 15) # PID Range
+    else:
+        pidYaw = PID(P_YAW, 0, 0, setpoint=0)  #I = 0.001
+        pidYaw.output_limits = (-15, 15) # PID Range
 
+    if USE_PID_ROLL:
+        pidRoll = PID(P_ROLL, I_ROLL, D_ROLL, setpoint=0)  #I = 0.001
+        pidRoll.output_limits = (-15, 15) # PID Range
+    else:
+        pidRoll = PID(P_YAW, 0, 0, setpoint=0)  #I = 0.001
+        pidRoll.output_limits = (-15, 15) # PID Range
 
-# PID_Config Velocity_X
+def connect_drone(drone_location):
+    drone.connect_drone(drone_location) #'/dev/ttyACM0'
 
-pidVelocityX = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
-pidVelocityX.output_limits = (-1.5, 1.5)  #values to determain
-p, i, d = pidVelocityX.components  # The separate terms are now in p, i, d
+def initialize_debug_logs():
+    global debug_yaw
+    global debug_velocity
+    debug_yaw = open(DEBUG_FILEPATH + "_yaw.txt", "a")
+    debug_yaw.write("P: I: D: Error: command:\n")
 
-# end PID_Config Velocity_X
-
-debug_fileYaw = open(file_path + "_yaw.txt", "a")
-debug_fileYaw.write("P: I: D: Error: command:\n")
-
-debug_file = open(file_path + "_velocity.txt", "a")
-debug_file.write("P: I: D: Error: command:\n")
+    debug_file = open(DEBUG_FILEPATH + "_velocity.txt", "a")
+    debug_file.write("P: I: D: Error: command:\n")
 
 # Logging_config
 def debug_writerYaw():
-    global debug_fileYaw
-    debug_fileYaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
+    global debug_yaw
+    debug_yaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
 
 def debug_writerVelocityX():
-    global debug_fileVelocityX
-    debug_fileVelocityX.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueVelocityX) + "," + str(velocityXCommand) + "\n")
-
-# end Logging_Config
+    global debug_velocity
+    debug_velocity.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueVelocityX) + "," + str(velocityXCommand) + "\n")
 
 # control functions
 def close_control_loop():
-    global control_loop_active, debug_fileYaw, debug_fileVelocityX
+    global control_loop_active, debug_yaw, debug_velocity
     control_loop_active = False
-    debug_fileYaw.close()
-    debug_fileVelocityX.close()
+    debug_yaw.close()
+    debug_velocity.close()
 
 def getMovementJawAngle():
     global movementJawAngle
@@ -124,4 +136,3 @@ def main(filename):
             print("control waiting for state update")
         
         time.sleep(0.1) # 10hz
-
