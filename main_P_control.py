@@ -2,7 +2,6 @@ import sys, time
 sys.path.insert(1, 'modules')
 
 import cv2
-
 import lidar
 import detector_mobilenet as detector
 import drone

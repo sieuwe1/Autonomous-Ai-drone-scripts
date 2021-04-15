@@ -29,6 +29,7 @@ pidYaw = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
 pidYaw.output_limits = (-15, 15)
 p, i, d = pidYaw.components  # The separate terms are now in p, i, d
 
+
 # end PID_Config Yaw
 
 

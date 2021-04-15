@@ -1,4 +1,5 @@
 import sys, time
+sys.path.insert(1, 'modules')
 import argparse
 
 import cv2
@@ -6,10 +7,10 @@ import threading
 import keyboard
 
 #from simple_pid import PID
-from modules import lidar
-from modules import detector_mobilenet as detector
-from modules import vision
-from modules import control2 as control
+import lidar
+import detector_mobilenet as detector
+import vision
+import control2 as control
 
 parser = argparse.ArgumentParser(description='Drive autonomous')
 parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug message name')
@@ -22,7 +23,7 @@ print("setting up detector")
 detector.initialize_detector()
 
 print("connecting to drone")
-control.connect_drone('/dev/ttyACM0')
+drone.connect_drone('/dev/ttyACM0')
 #drone.connect_drone('127.0.0.1:14551')
 
 #config
