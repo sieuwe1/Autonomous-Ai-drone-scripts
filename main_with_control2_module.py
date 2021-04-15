@@ -122,6 +122,9 @@ def track():
         else:
             return "search"
 
+def draw_tracking_information(image): ->
+
+
 def search():
     print("State = SEARCH")
     start = time.time()
