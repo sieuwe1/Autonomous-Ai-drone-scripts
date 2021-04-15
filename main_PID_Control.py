@@ -3,6 +3,7 @@ sys.path.insert(1, 'modules')
 
 import cv2
 from simple_pid import PID
+from collections import deque
 
 import lidar
 import detector_mobilenet as detector
@@ -29,30 +30,39 @@ max_height =  3  #m
 max_speed = 3 #m/s
 max_rotation = 8 #degree
 vis = True
-movement_x_en = False
+movement_x_en = True
 movement_yaw_en = True
 #end config
 
 pidYaw = PID(0.02, 0, 0, setpoint=0)  #I = 0.001
 pidYaw.output_limits = (-15, 15)
-p, i, d = pidYaw.components  # The separate terms are now in p, i, d
 
-x_scalar = max_rotation / 460 
+maxlength = 5
+moving_average_z = collections.deque(maxlen=maxlength)
+
+maxlength = 5
+moving_average_x = collections.deque(maxlen=maxlength)
+
 z_scalar = max_speed / 10
 state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/PID_MAIN_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
-
-
-debug_fileYaw = open("PID_IN_MAIN_2_yaw.txt", "a")
+debug_image_writer = cv2.VideoWriter("debug/new_drone_1.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_fileYaw = open("new_drone_1_yaw.txt", "a")
 debug_fileYaw.write("P: I: D: Error: command:\n")
+
+debug_fileDepth= open("new_drone_1_Depth.txt", "a")
+debug_fileDepth.write("P: I: D: Error: command:\n")
 
 # Logging_config
 def debug_writerYaw(inputValueYaw,movementJawAngle):
     global debug_fileYaw
-    debug_fileYaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
+    debug_fileYaw.write("0" + "," + "0" + "," + "0" + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
+
+def debug_writerDepth(inputValueYaw,movementJawAngle):
+    global debug_fileDepth
+    debug_fileDepth.write("0" + "," + "0" + "," + "0" + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
 
 
 def track():
@@ -72,21 +82,39 @@ def track():
             lidar_on_target = vision.point_in_rectangle(drone_image_center,person_to_track.Left, person_to_track.Right, person_to_track.Top, person_to_track.Bottom) #check if lidar is pointed on target
 
             lidar_distance = lidar.read_lidar_distance()[0] # get lidar distance in meter
+
+            moving_average_z.append(lidar_distance)
+            moving_average_x.append(x_delta)
             
             #control section 
             #x_delta max=620 min= -620
             #y_delta max=360 min= -360
             #z_delta max=8   min= 2
 
+            #depth x command > manual P and moving average
             velocity_x_command = 0
-            #if movement_x_en and lidar_distance > 0 and lidar_on_target: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
-            #    z_delta = lidar_distance - follow_distance
-            #    velocity_x_command = z_delta * z_scalar
-            #    drone.send_movement_command_XYZ(velocity_x_command,0,0)
+            if movement_x_en and lidar_distance > 0 and lidar_on_target and len(moving_average_z) > 0: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
+                
+                sum_moving_avg = 0
+                for i in range(maxlength):
+                    sum_moving_avg += moving_average_z[i]
 
+                lider_distance_moving_avg = sum_moving_avg / maxlength
+                z_delta = lider_distance_moving_avg - follow_distance
+                velocity_x_command = z_delta * z_scalar
+                debug_writerDepth(z_delta, velocity_x_command)
+                drone.send_movement_command_XYZ(velocity_x_command,0,0)
+
+            #yaw command > PID and moving average
             yaw_command = 0
-            if movement_yaw_en:
-                yaw_command = (pidYaw(x_delta) * -1)
+            if movement_yaw_en and len(moving_average_x) > 0:
+                
+                sum_moving_avg = 0
+                for i in range(maxlength):
+                    sum_moving_avg += moving_average_x[i]
+
+                delta_x_moving_avg = sum_moving_avg / maxlength
+                yaw_command = (pidYaw(delta_x_moving_avg) * -1)
                 debug_writerYaw(x_delta, yaw_command)
                 drone.send_movement_command_YAW(yaw_command)
 

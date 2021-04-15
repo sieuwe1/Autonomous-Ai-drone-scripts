@@ -43,7 +43,7 @@ state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/P_control_mian_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_image_writer = cv2.VideoWriter("debug/New_droneFlight_1_P.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
 
 
 #debug_fileYaw = open("P_IN_MAIN_2_yaw.txt", "a")
@@ -91,7 +91,7 @@ def track():
             yaw_command = 0
             if movement_yaw_en:
                 yaw_command = x_delta * x_scalar
- #               debug_writerYaw(x_delta, yaw_command)
+                #debug_writerYaw(x_delta, yaw_command)
                 drone.send_movement_command_YAW(yaw_command)
 
             if vis:
