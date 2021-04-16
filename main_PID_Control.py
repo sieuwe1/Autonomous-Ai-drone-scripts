@@ -183,3 +183,5 @@ while True:
 
     elif state == "land":
         state = land()
+
+# TODO test and training modus -> use simulator in one, use cv video writer in other

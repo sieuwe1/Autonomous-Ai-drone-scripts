@@ -1,4 +1,4 @@
-import drone
+from modules import drone
 from simple_pid import PID
 
 USE_PID_YAW = True
@@ -33,7 +33,7 @@ debug_yaw = None
 debug_velocity = None
 
 
-def configure_PID():
+def configure_PID(USE_PID_YAW, USE_PID_ROLL):
     """ Creates a new PID object depending on whether or not the PID or P is used """ 
     if USE_PID_YAW:
         pidYaw = PID(P_YAW, I_YAW, D_YAW, setpoint=0)  #I = 0.001
@@ -51,24 +51,6 @@ def configure_PID():
 
 def connect_drone(drone_location):
     drone.connect_drone(drone_location) #'/dev/ttyACM0'
-
-def initialize_debug_logs():
-    global debug_yaw
-    global debug_velocity
-    debug_yaw = open(DEBUG_FILEPATH + "_yaw.txt", "a")
-    debug_yaw.write("P: I: D: Error: command:\n")
-
-    debug_file = open(DEBUG_FILEPATH + "_velocity.txt", "a")
-    debug_file.write("P: I: D: Error: command:\n")
-
-# Logging_config
-def debug_writerYaw():
-    global debug_yaw
-    debug_yaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
-
-def debug_writerVelocityX():
-    global debug_velocity
-    debug_velocity.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueVelocityX) + "," + str(velocityXCommand) + "\n")
 
 # control functions
 def close_control_loop():
