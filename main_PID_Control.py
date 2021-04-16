@@ -3,7 +3,7 @@ sys.path.insert(1, 'modules')
 
 import cv2
 from simple_pid import PID
-from collections import deque
+import collections
 
 import lidar
 import detector_mobilenet as detector
@@ -43,16 +43,16 @@ moving_average_z = collections.deque(maxlen=maxlength)
 maxlength = 5
 moving_average_x = collections.deque(maxlen=maxlength)
 
-z_scalar = max_speed / 10
+z_scalar = max_speed / 50
 state = "takeoff" # takeoff land track search
 image_width, image_height = detector.get_image_size()
 drone_image_center = (image_width / 2, image_height / 2)
 
-debug_image_writer = cv2.VideoWriter("debug/new_drone_1.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
-debug_fileYaw = open("new_drone_1_yaw.txt", "a")
+debug_image_writer = cv2.VideoWriter("debug/new_drone_2.avi",cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25.0,(image_width,image_height))
+debug_fileYaw = open("new_drone_2_yaw.txt", "a")
 debug_fileYaw.write("P: I: D: Error: command:\n")
 
-debug_fileDepth= open("new_drone_1_Depth.txt", "a")
+debug_fileDepth= open("new_drone_2_Depth.txt", "a")
 debug_fileDepth.write("P: I: D: Error: command:\n")
 
 # Logging_config
@@ -96,8 +96,8 @@ def track():
             if movement_x_en and lidar_distance > 0 and lidar_on_target and len(moving_average_z) > 0: #only if a valid lidar value is given change the forward velocity. Otherwise keep previos velocity (done by arducopter itself)
                 
                 sum_moving_avg = 0
-                for i in range(maxlength):
-                    sum_moving_avg += moving_average_z[i]
+                for i in moving_average_z:
+                    sum_moving_avg = sum_moving_avg + i
 
                 lider_distance_moving_avg = sum_moving_avg / maxlength
                 z_delta = lider_distance_moving_avg - follow_distance
@@ -110,8 +110,8 @@ def track():
             if movement_yaw_en and len(moving_average_x) > 0:
                 
                 sum_moving_avg = 0
-                for i in range(maxlength):
-                    sum_moving_avg += moving_average_x[i]
+                for i in moving_average_x:
+                    sum_moving_avg = sum_moving_avg + i
 
                 delta_x_moving_avg = sum_moving_avg / maxlength
                 yaw_command = (pidYaw(delta_x_moving_avg) * -1)

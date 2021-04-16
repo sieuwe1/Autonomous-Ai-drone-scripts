@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-file1 = open('bench_test.txt', 'r')
+file1 = open('new_drone_1_Depth.txt', 'r')
 Lines = file1.readlines()
 
 data = []
