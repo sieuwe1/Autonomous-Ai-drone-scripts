@@ -1,6 +1,5 @@
 from modules import drone
 from simple_pid import PID
-import time
 
 USE_PID_YAW = True
 USE_PID_ROLL = False
@@ -93,24 +92,6 @@ def print_drone_report():
     print(drone.get_battery_info())
     print(drone.get_version())
 #end drone functions
-
-def initialize_debug_logs():
-    global debug_yaw
-    global debug_velocity
-    debug_yaw = open(DEBUG_FILEPATH + "_yaw.txt", "a")
-    debug_yaw.write("P: I: D: Error: command:\n")
-
-    debug_file = open(DEBUG_FILEPATH + "_velocity.txt", "a")
-    debug_file.write("P: I: D: Error: command:\n")
-
-# Logging_config
-def debug_writerYaw():
-    global debug_yaw
-    debug_yaw.write(str(0) + "," + str(0) + "," + str(0) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
-
-def debug_writerVelocityX():
-    global debug_velocity
-    debug_velocity.write(str(0) + "," + str(0) + "," + str(0) + "," +str(inputValueVelocityX) + "," + str(velocityXCommand) + "\n")
 
 def main(filename):
     global movementJawAngle, velocityXCommand, file_path
