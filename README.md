@@ -10,7 +10,7 @@
 #### Work is still being done and more will come! All code is experimental and not 100% working yet. please use any code with caution!
 
 ### scripts
-#### For now we have a person follow script which can autonomsly follow a person using a live camera feed and a Lidar.
+#### For now we have a person follow script which can autonomsly follow a person using a live camera feed and a Lidar. Run "sudo python3 follow_person_main.py --mode=flight --debug_path=debug/flight1". For ardupilot simulator testing use "sudo python3 follow_person_main.py --mode=test --debug_path=debug/flight1"
 
 ### packages
 #### The following software packages are needed

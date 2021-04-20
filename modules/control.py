@@ -1,110 +1,123 @@
+from logging import debug
+from modules import drone
 from simple_pid import PID
 import time
-import drone
+
+USE_PID_YAW = True
+USE_PID_ROLL = False
+
+MAX_SPEED = 3       # M / s
+MAX_YAW = 15        # Degrees / s 
+
+P_YAW = 0.01
+I_YAW = 0
+D_YAW = 0
+
+P_ROLL = 0.3
+I_ROLL = 0
+D_ROLL = 0
 
 control_loop_active = True
-#Yaw
-max_rotation = 8 #degree
-x_scalar = max_rotation / 460
-
-movementJawAngle = 0
+pidYaw = None
+pidRoll = None
+movementYawAngle = 0
+movementRollAngle = 0
 inputValueYaw = 0
-debug_enableYaw = True
-Yaw_PID_Active = True
-file_path = ""
-
-#velocity
-max_speed = 3 #m/s
-z_scalar = max_speed / 10
-
-velocityXCommand = 0
 inputValueVelocityX = 0
-debug_enableVelocityX = False
-Velocity_X_PID_Active = False
+control_loop_active = True
 
-# PID_Config Yaw
-
-pidYaw = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
-pidYaw.output_limits = (-15, 15)
-p, i, d = pidYaw.components  # The separate terms are now in p, i, d
-
-# end PID_Config Yaw
+debug_yaw = None
+debug_velocity = None
 
 
-# PID_Config Velocity_X
+def configure_PID(control):
+    global pidRoll,pidYaw
 
-pidVelocityX = PID(0.03, 0, 0, setpoint=0)  #I = 0.001
-pidVelocityX.output_limits = (-1.5, 1.5)  #values to determain
-p, i, d = pidVelocityX.components  # The separate terms are now in p, i, d
+    """ Creates a new PID object depending on whether or not the PID or P is used """ 
 
-# end PID_Config Velocity_X
+    print("Configuring control")
 
-debug_fileYaw = open(file_path + "_yaw.txt", "a")
-debug_fileYaw.write("P: I: D: Error: command:\n")
+    if control == 'PID':
+        pidYaw = PID(P_YAW, I_YAW, D_YAW, setpoint=0)       # I = 0.001
+        pidYaw.output_limits = (-MAX_YAW, MAX_YAW)          # PID Range
+        pidRoll = PID(P_ROLL, I_ROLL, D_ROLL, setpoint=0)   # I = 0.001
+        pidRoll.output_limits = (-MAX_SPEED, MAX_SPEED)     # PID Range
+        print("Configuring PID")
+    else:
+        pidYaw = PID(P_YAW, 0, 0, setpoint=0)               # I = 0.001
+        pidYaw.output_limits = (-MAX_YAW, MAX_YAW)          # PID Range
+        pidRoll = PID(P_ROLL, 0, 0, setpoint=0)             # I = 0.001
+        pidRoll.output_limits = (-MAX_SPEED, MAX_SPEED)     # PID Range
+        print("Configuring P")
 
-debug_file = open(file_path + "_velocity.txt", "a")
-debug_file.write("P: I: D: Error: command:\n")
+def connect_drone(drone_location):
+    drone.connect_drone(drone_location) #'/dev/ttyACM0'
 
-# Logging_config
-def debug_writerYaw():
-    global debug_fileYaw
-    debug_fileYaw.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueYaw) + "," + str(movementJawAngle) + "\n")
-
-def debug_writerVelocityX():
-    global debug_fileVelocityX
-    debug_fileVelocityX.write(str(p) + "," + str(i) + "," + str(d) + "," + str(inputValueVelocityX) + "," + str(velocityXCommand) + "\n")
-
-# end Logging_Config
-
-def close_control_loop():
-    global control_loop_active, debug_fileYaw, debug_fileVelocityX
-    control_loop_active = False
-    debug_fileYaw.close()
-    debug_fileVelocityX.close()
-
-def getMovementJawAngle():
-    global movementJawAngle
-    return movementJawAngle
+def getMovementYawAngle():
+    return movementYawAngle
 
 def setXdelta(XDelta):
     global inputValueYaw
     inputValueYaw = XDelta
 
 def getMovementVelocityXCommand():
-    global velocityXCommand
-    return velocityXCommand
+    return movementRollAngle
 
 def setZDelta(ZDelta):
     global inputValueVelocityX
     inputValueVelocityX = ZDelta
 
-def main(filename):
-    global movementJawAngle, velocityXCommand, file_path
+def set_system_state(current_state):
+    global state
+    state = current_state
+# end control functions
 
-    file_path = filename
+#drone functions
+def arm_and_takeoff(max_height):
+    drone.arm_and_takeoff(max_height)
 
-    while control_loop_active:
+def land():
+    drone.land()
 
-        if Yaw_PID_Active == True:
-            movementJawAngle = (pidYaw(inputValueYaw) * -1)
-            drone.send_movement_command_YAW(movementJawAngle)
+def print_drone_report():
+    print(drone.get_EKF_status())
+    print(drone.get_battery_info())
+    print(drone.get_version())
+#end drone functions
 
-        if debug_enableYaw == True:
-            debug_writerYaw()
+def initialize_debug_logs(DEBUG_FILEPATH):
+    global debug_yaw, debug_velocity
+    debug_yaw = open(DEBUG_FILEPATH + "_yaw.txt", "a")
+    debug_yaw.write("P: I: D: Error: command:\n")
 
-       # if Yaw_PID_Active == False:
-       #     movementJawAngle = inputValueYaw * x_scalar
-       #     drone.send_movement_command_YAW(movementJawAngle)
+    debug_velocity = open(DEBUG_FILEPATH + "_velocity.txt", "a")
+    debug_velocity.write("P: I: D: Error: command:\n")
 
-      #  if Velocity_X_PID_Active == True:
-      #      velocityXCommand = pidVelocityX(inputValueVelocityX)
-      #      drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
+def debug_writer_YAW(value):
+    global debug_yaw
+    debug_yaw.write(str(0) + "," + str(0) + "," + str(0) + "," + str(inputValueYaw) + "," + str(value) + "\n")
 
-       # if debug_enableVelocityX == True:
-       #     debug_writerVelocityX()
+def debug_writer_ROLL(value):
+    global debug_velocity
+    debug_velocity.write(str(0) + "," + str(0) + "," + str(0) + "," + str(inputValueYaw) + "," + str(value) + "\n")
 
-       # if Velocity_X_PID_Active == False:
-       #     velocityXCommand = inputValueVelocityX * z_scalar
-       #     drone.send_movement_command_XYZ(velocityXCommand, 0, 0)
+def control_drone():
+    global movementYawAngle, movementRollAngle
+    if inputValueYaw == 0:
+        drone.send_movement_command_YAW(0)
+    else:
+        movementYawAngle = (pidYaw(inputValueYaw) * -1)
+        drone.send_movement_command_YAW(movementYawAngle)
+        debug_writer_YAW(movementYawAngle)
 
-        time.sleep(1)
+    if inputValueVelocityX == 0:
+        drone.send_movement_command_XYZ(0,0,0)
+    else:
+        movementRollAngle = (pidRoll(inputValueVelocityX) * -1)
+        drone.send_movement_command_XYZ(movementRollAngle, 0, 0)
+        debug_writer_ROLL(movementRollAngle)
+
+def stop_drone():
+    drone.send_movement_command_YAW(0)
+    drone.send_movement_command_XYZ(0,0,0)
+    

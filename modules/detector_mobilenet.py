@@ -10,7 +10,7 @@ def initialize_detector():
 	global net, camera
 	net = jetson.inference.detectNet("ssd-mobilenet-v2")
 	camera = jetson.utils.videoSource("csi://0")      # '/dev/video0' for V4L2
-	
+	print("fakka")
 
 def get_image_size():
 	return camera.GetWidth(), camera.GetHeight()
