@@ -7,7 +7,7 @@ import collections
 
 #from simple_pid import PID
 from modules import lidar
-from modules import detector_mobilenet as detector
+from modules import detector_cityscapes as detector
 from modules import vision
 from modules import control as control
 from modules import keyboard
@@ -18,7 +18,7 @@ parser.add_argument('--debug_path', type=str, default="debug/run1", help='debug 
 parser.add_argument('--mode', type=str, default='flight', help='Switches between flight record and flight visualisation')
 parser.add_argument('--control', type=str, default='PID', help='Use PID or P controller' )
 args = parser.parse_args()
-
+ 
 # config
 MAX_FOLLOW_DIST =1.5                            #meter
 MAX_ALT =  2.5                                  #m
@@ -30,6 +30,9 @@ MA_X = collections.deque(maxlen=MAX_MA_X_LEN)   #Moving Average X
 MA_Z = collections.deque(maxlen=MAX_MA_Z_LEN)   #Moving Average Z
 STATE = "takeoff"                               # takeoff land track search
 # end config
+
+control.configure_PID(args.control)
+control.initialize_debug_logs(args.debug_path)
 
 image_width, image_height = detector.get_image_size()
 image_center = (image_width / 2, image_height / 2)
@@ -128,9 +131,9 @@ def land():
     sys.exit(0)
 
 def visualize(img):
-    if "flight" == args.mode:
+    if args.mode == "flight":
         debug_image_writer.write(img)
-    else:
+    elif args.mode == "test":
         cv2.imshow("out", img)
         cv2.waitKey(1)
     return
@@ -163,8 +166,8 @@ def prepare_visualisation(lidar_distance, person_center, person_to_track, image,
 
 def calculate_ma(ma_array):
     sum_ma = 0
-    for i in range(ma_array):
-        sum_ma += ma_array[i]
+    for i in ma_array:
+        sum_ma += i
 
     return sum_ma / len(ma_array)
 
@@ -175,8 +178,6 @@ while True:
     """" True or False values depend whether or not
         a PID controller or a P controller will be used  """
 
-    control.configure_PID(args.control)
-    control.initialize_debug_logs(args.debug_path)
 
     if STATE == "track":
         control.set_system_state("track")
