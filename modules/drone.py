@@ -43,6 +43,9 @@ def get_home_location():
 def get_EKF_status():
     return vehicle.ekf_ok
 
+def read_channel(channel):
+    return vehicle.channels[str(channel)]
+
 def set_gimbal_angle(angle):
     global vehicle
     print("gimbal angle set to: " % angle)

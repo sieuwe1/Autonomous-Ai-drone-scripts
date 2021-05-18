@@ -7,7 +7,6 @@ import collections
 
 import lidar
 import detector_mobilenet as detector
-import drone
 import vision
 import control 
 import keyboard
