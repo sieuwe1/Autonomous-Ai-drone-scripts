@@ -20,7 +20,7 @@ parser.add_argument('--control', type=str, default='PID', help='Use PID or P con
 args = parser.parse_args()
 
 # config
-MAX_FOLLOW_DIST =1.5                            #meter
+MAX_FOLLOW_DIST = 2                          #meter
 MAX_ALT =  2.5                                  #m
 MAX_SPEED = 4                                   #m/s
 MAX_ROTATION_DEG = 8                            #degree
