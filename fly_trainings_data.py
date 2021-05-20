@@ -1,4 +1,4 @@
-import sys, time
+import sys, time, os
 import argparse
 sys.path.insert(1, 'modules')
 
@@ -10,11 +10,16 @@ import camera
 import drone
 
 state = "init" # init, flight, flight_record, shutdown
+record_button_channel = 6
 
+frame_count = None
 left_camera = None
 right_camera = None
-
-record_button_channel = 6
+data_dir = None
+cam_left_dir = None
+cam_right_dir = None
+cam_depth_dir = None
+control_dir = None
 
 positions = collections.deque(maxlen=60) #if system runs 30fps then 60fps is 2 seconds 
 
@@ -29,14 +34,41 @@ def calculate_path_distance():
     #calcualte distance between the line and drone and between end point and drone using path calcualted from calulate_path()
 
 def setup_writer()
-    return 
+    global data_dir, cam_left_dir, cam_right_dir, cam_depth_dir, control_dir
 
-def writeTrainData(angle, throttle, image, framecount):
+    dataName = input("please type name of this run. This will be the name of the Data folder")
+    print("you entered: " + str(dataName))
 
-    camName = str(framecount) + '_cam-image_array_.jpg'
-    camPath = os.path.join(data_dir, camName)
-    cv2.imwrite(camPath, image) 
-    json_data = {"user/angle": angle, "cam/image_array": camName, "user/throttle": throttle, "user/mode": "user"}
+    current_directory = os.getcwd()
+    data_dir = os.path.join(current_directory, dataName)
+    try:
+        os.mkdir(data_dir)
+        print("Directory " , data_dir ,  " Created ") 
+    except FileExistsError:
+        print("Directory " , data_dir ,  " already exists")
+    
+    cam_left_dir = data_dir + "left_camera"
+    cam_right_dir = data_dir + "right_camera"
+    cam_depth_dir = data_dir + "depth_camera"
+    control_dir = data_dir + "control"
+
+    os.mkdir(cam_left_dir)
+    os.mkdir(cam_right_dir)
+    os.mkdir(cam_depth_dir)
+    os.mkdir(control_dir)   
+
+def write_image(img, path, framecount):
+    cam_name = str(framecount) + '_cam-image_cam_array.jpg'
+    cam_path = os.path.join(path, cam_name)
+    cv2.imwrite(cam_path, img) 
+
+def write_train_data(left_img, right_img, depth_img, roll, pitch, throttle, yaw, framecount):
+
+    write_image(left_img,cam_left_dir,framecount)
+    write_image(right_img,cam_right_dir,framecount)
+    write_image(depth_img,cam_depth_dir,framecount)    
+
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "cam/image_array_left": left_img, "cam/image_array_right": right_img, "cam/image_array_depth": depth_img, "user/mode": "user"}
     
     jsonName = "record_" + str(framecount) + '.json'
     jsonPath = os.path.join(data_dir, jsonName)
@@ -63,14 +95,18 @@ def flight():
     print("State = FLIGHT -> " + STATE)
 
     while drone.read_channel(record_button_channel) < 3000 #3000 good PWM value?
+        print("record channel output: " + str(drone.read_channel(record_button_channel)))
         time.sleep(0.1)
 
     return "flight_record"
 
 def flight_record():
+    global frame_count
+
     print("State = FLIGHT_RECORD -> " + STATE)
 
     while drone.read_channel(record_button_channel) > 3000 #3000 good PWM value?
+        frame_count += 1
 
         left_img = camera.get_video(0)
         right_img = camera.get_video(1)
@@ -82,7 +118,7 @@ def flight_record():
         throttle = drone.read_channel(3) #up/down
         yaw = drone.read_channel(4) #yaw
     
-        writeTrainData(left_img, right_img,)
+        write_train_data(left_img, right_img, depth_img, roll, pitch, throttle, yaw, frame_count)
 
     return "flight"
 
