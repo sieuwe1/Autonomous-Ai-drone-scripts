@@ -15,11 +15,13 @@ sys.path.insert(1, 'modules')
 state = "init"  # init, flight, flight_record, shutdown
 record_button_channel = 6
 
+# Zed 2 required variables
 cam = None
 mat = None
 runtime = None
 init_parameters = None
 mat = None
+
 
 frame_count = None
 left_camera = None
@@ -74,7 +76,10 @@ def setup_writer():
     os.mkdir(control_dir)
 
 
-def write_image(img, path, framecount):
+def write_image(img, path, framecount, resize=False):
+    if resize:
+        # Resizes the image using the INTER_CUBIC interpolation, taking the average of the 4 pixels surrounding it
+        img = cv2.resize(img, (300, 300), interpolation=cv2.INTER_CUBIC)
     cam_name = str(framecount) + '_cam-image_cam_array.jpg'
     cam_path = os.path.join(path, cam_name)
     cv2.imwrite(cam_path, img)
@@ -84,7 +89,7 @@ def write_train_data(left_img, right_img, depth_img, roll, pitch, throttle, yaw,
 
     write_image(left_img, cam_left_dir, framecount)
     write_image(right_img, cam_right_dir, framecount)
-    write_image(depth_img, cam_depth_dir, framecount)
+    write_image(depth_img, cam_depth_dir, framecount, resize=True)
 
     json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw,
                  "cam/image_array_left": left_img, "cam/image_array_right": right_img, "cam/image_array_depth": depth_img, "user/mode": "user"}
@@ -138,7 +143,7 @@ def flight_record():
         right_img = camera.get_video(1)
 
         depth_img = cam.retrieve_measure(
-            mat, sl.MEASURE.DEPTH)
+            mat, sl.MEASURE.DEPTH).get_data()   # Retrieves the depth image
 
         roll = drone.read_channel(1)  # not needed
         pitch = drone.read_channel(2)  # forward/backward
@@ -151,10 +156,11 @@ def flight_record():
     return "flight"
 
 
-def init_zed():
+# TODO discuss extra parameters?
+def init_zed(performance_mode=True):
     global mat
     init_parameters = sl.InitParameters()
-    init_parameters.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+    init_parameters.depth_mode = sl.DEPTH_MODE.PERFORMANCE if performance_mode else sl.DEPTH_MODE.ULTRA
     init_parameters.depth_minimum_distance = 1
     mat = sl.Mat()
     return sl.Camera(init_parameters)
