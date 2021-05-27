@@ -16,6 +16,13 @@ def get_version():
     global vehicle
     return vehicle.version
 
+def get_mission():
+    global vehicle
+    cmds = vehicle.commands
+    cmds.download()
+    cmds.wait_ready()
+    return 
+
 def get_location():
     global vehicle
     return vehicle.location.global_frame
