@@ -47,6 +47,10 @@ def get_home_location():
     global vehicle
     return vehicle.home_location
 
+def get_heading():
+    global vehicle
+    return vehicle.heading
+
 def get_EKF_status():
     return vehicle.ekf_ok
 
