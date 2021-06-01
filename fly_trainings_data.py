@@ -35,9 +35,16 @@ image_queue = []
 def calculate_path_distance(target, start):
     current_cordinate = drone.get_location()
     current = np.asarray((current_cordinate.lat,current_cordinate.lon))
-    path_distance = np.linalg.norm(np.cross(start-target,target-current))/np.linalg.norm(start-target)
-    target_distance = math.sqrt(((target[0]- start[0])**2)+((target[1]- start[1])**2))
-    print("target distance: " + str(target_distance))    
+    #path_distance = np.linalg.norm(np.cross(start-target,target-current))/np.linalg.norm(start-target)
+
+    d_lon_target = 
+    d_lat_target = 
+
+
+    #change distance to meters
+    R = 6373.0
+
+    print("target distance: " + str(target_distance))     
     print("path distance: " + str(path_distance))
     return target_distance, path_distance
     
@@ -81,32 +88,27 @@ def setup_writer():
     os.mkdir(cam_depth_dir)
     os.mkdir(control_dir)
 
-def write_image(img, path, framecount):
-    print("I AM BEING CALLED")
+def write_image(img, path, cam_name):
     #img = cv2.resize(img, (300, 300), interpolation=cv2.INTER_CUBIC)
-    cam_name = str(framecount) + '_cam-image_cam_array.jpg'
     cam_path = os.path.join(path, cam_name)
     cv2.imwrite(cam_path, img) 
-    return cam_name
 
-def write_train_data(left_img, right_img, depth_img, target_distance, path_distance, roll, pitch, throttle, yaw, framecount):
-    left_cam =  write_image(left_img,cam_left_dir,framecount)
-    right_cam = write_image(right_img,cam_right_dir,framecount)
-    depth_cam = write_image(depth_img,cam_depth_dir,framecount) 
-    
-    # x = threading.Thread(target=write_image, args=(left_img,cam_left_dir,framecount))
-    # y = threading.Thread(target=write_image, args=(right_img,cam_right_dir,framecount))
-    # z = threading.Thread(target=write_image, args=(depth_img, cam_depth_dir, framecount))
-    # x.start()
-    # y.start()
-    # z.start()
+def write_train_data(left_img, right_img, bgrd_img, target_distance, path_distance, roll, pitch, throttle, yaw, framecount, mode):
+
+    cam_name = str(framecount) + '_cam-image.jpg'
+
+    x = threading.Thread(target=write_image, args=(left_img,cam_left_dir,cam_name))
+    y = threading.Thread(target=write_image, args=(right_img,cam_right_dir,cam_name))
+    z = threading.Thread(target=write_image, args=(bgrd_img, cam_depth_dir, cam_name))
+    x.start()
+    y.start()
+    z.start()
     # print(roll)
     # print(pitch)
     # print(throttle)
     # print(yaw)
-    # print(framecount) 
-
-    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "gps/target_distance": target_distance, "gps/path_distance": path_distance,"cam/image_array_left": left_cam, "cam/image_array_right": right_cam, "cam/image_array_depth": depth_cam, "frame_count": framecount , "user/mode": "user"}
+    # print(framecount) `   
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "gps/target_distance": target_distance, "gps/path_distance": path_distance,"cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
     
     jsonName = "record_" + str(framecount) + '.json'
     jsonPath = os.path.join(control_dir, jsonName)
@@ -135,13 +137,29 @@ def init():
 
 
 def flight():
+    global frame_count
     print("State = FLIGHT -> " + STATE)
 
     # 3000 good PWM value?
     while drone.read_channel(record_button_channel) < 1500:
-        print("record channel output: " +
-              str(drone.read_channel(record_button_channel)))
-        time.sleep(0.1)
+        start_time = time.time()
+        frame_count += 1
+
+        left_img = camera.get_video(1)
+        right_img = camera.get_video(0)
+        right_img = cv2.rotate(right_img, cv2.cv2.ROTATE_180)
+        bgrd_img = zed.get_rgbd_image()
+       
+        #cv2.imshow("left", left_img)
+        #cv2.imshow("right", right_img)
+        #cv2.imshow("LEFT", rgb_img)
+
+        #cv2.waitKey(1)
+
+        write_train_data(left_img, right_img, bgrd_img, 0, 0, 0, 0, 0, 0, frame_count, 0)
+        
+        end_time = time.time()
+        print("FPS: " + str(1/(end_time-start_time)))
 
     return "flight_record"
 
@@ -164,9 +182,10 @@ def flight_record():
         start_time = time.time()
         frame_count += 1
 
-        left_img = camera.get_video(0)
-        right_img = camera.get_video(1)
-        depth_img = zed.get_depth_image()
+        left_img = camera.get_video(1)
+        right_img = camera.get_video(0)
+        right_img = cv2.rotate(right_img, cv2.cv2.ROTATE_180)
+        bgrd_img = zed.get_rgbd_image()
        
         #cv2.imshow("left", left_img)
         #cv2.imshow("right", right_img)
@@ -180,16 +199,12 @@ def flight_record():
         yaw = drone.read_channel(4)  # yaw
         target_distance, path_distance = calculate_path_distance(target,start)
 
-        write_train_data(left_img, right_img, depth_img, target_distance, path_distance, roll, pitch, throttle, yaw, frame_count)
+        write_train_data(left_img, right_img, bgrd_img, target_distance, path_distance, roll, pitch, throttle, yaw, frame_count, 1)
         
         end_time = time.time()
         print("FPS: " + str(1/(end_time-start_time)))
 
     return "flight"
-
-
-def bulk_write_images():
-    
 
 def shutdown():
     print("State = SHUTDOWN -> " + STATE)
