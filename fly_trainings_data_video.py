@@ -3,6 +3,8 @@ sys.path.insert(1, 'modules')
 import drone
 import camera
 import zed
+import gps
+
 import json
 import collections
 import cv2
@@ -30,30 +32,6 @@ control_dir = None
 left_writer = None
 right_writer = None
 depth_writer = None
-
-def calculate_path_distance(target, start):
-    current_cordinate = drone.get_location()
-    current = np.asarray((current_cordinate.lat,current_cordinate.lon))
-    path_distance = np.linalg.norm(np.cross(start-target,target-current))/np.linalg.norm(start-target)
-    target_distance = math.sqrt(((target[0]- start[0])**2)+((target[1]- start[1])**2))
-    print("target distance: " + str(target_distance))    
-    print("path distance: " + str(path_distance))
-    return target_distance, path_distance
-    
-
-def calculate_target(start):
-    distance_to_target = 50 #meter
-    heading = drone.get_heading() #0 = north. Value 0 to 360
-    print("heading: " + str(heading))
-
-    lat0 = math.cos(math.pi / 180.0 * start[0])
-   
-    a = math.radians(heading);  
-
-    x = start[0] + (180/math.pi) * (distance_to_target / 6378137) / math.cos(lat0) * math.cos(a)
-    y = start[1] + (180/math.pi) * (distance_to_target / 6378137) * math.sin(a)
-
-    return (x,y)
 
 def setup_writer():
     global data_dir, control_dir, left_writer, right_writer, depth_writer
@@ -184,7 +162,7 @@ def flight_record():
         pitch = drone.read_channel(2)  # forward/backward
         throttle = drone.read_channel(3)  # up/down
         yaw = drone.read_channel(4)  # yaw
-        target_distance, path_distance = calculate_path_distance(target,start)
+        target_distance, path_distance = gps.calculate_path_distance(target,start)
 
         write_train_data(left_img, right_img, depth_img, target_distance, path_distance, roll, pitch, throttle, yaw, frame_count)
         

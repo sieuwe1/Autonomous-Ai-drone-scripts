@@ -30,39 +30,6 @@ cam_right_dir = None
 cam_depth_dir = None
 control_dir = None
 
-image_queue = []
-
-def calculate_path_distance(target, start):
-    current_cordinate = drone.get_location()
-    current = np.asarray((current_cordinate.lat,current_cordinate.lon))
-    #path_distance = np.linalg.norm(np.cross(start-target,target-current))/np.linalg.norm(start-target)
-
-    d_lon_target = 
-    d_lat_target = 
-
-
-    #change distance to meters
-    R = 6373.0
-
-    print("target distance: " + str(target_distance))     
-    print("path distance: " + str(path_distance))
-    return target_distance, path_distance
-    
-
-def calculate_target(start):
-    distance_to_target = 50 #meter
-    heading = drone.get_heading() #0 = north. Value 0 to 360
-    print("heading: " + str(heading))
-
-    lat0 = math.cos(math.pi / 180.0 * start[0])
-   
-    a = math.radians(heading);  
-
-    x = start[0] + (180/math.pi) * (distance_to_target / 6378137) / math.cos(lat0) * math.cos(a)
-    y = start[1] + (180/math.pi) * (distance_to_target / 6378137) * math.sin(a)
-
-    return (x,y)
-
 def setup_writer():
     global data_dir, cam_left_dir, cam_right_dir, cam_depth_dir, control_dir
 
@@ -122,8 +89,6 @@ def init():
 
     print("State = INIT -> " + STATE)
 
-    drone.connect_drone('/dev/ttyACM0')
-
     setup_writer()  # file path or something as param
 
     left_camera = camera.create_camera(0)
@@ -131,6 +96,7 @@ def init():
     depth_camera = zed.init_zed(performance_mode=True)
 
     drone.connect_drone('/dev/ttyACM0')
+    drone.arm()
     #drone.connect_drone('127.0.0.1:14551')
 
     return "flight"
@@ -170,9 +136,9 @@ def flight_record():
     print("State = FLIGHT_RECORD -> " + STATE) 
 
     start_cordinate = drone.get_location()
-    start = np.asarray((start_cordinate.lat,start_cordinate.lon))
+    start = (start_cordinate.lat,start_cordinate.lon)
 
-    target = calculate_target(start) 
+    target = gps.calculate_target(start,drone.get_heading()) 
 
     print("start location: " + str(start))
     print("target location: " + str(target))
@@ -181,6 +147,9 @@ def flight_record():
     while drone.read_channel(record_button_channel) > 1500:
         start_time = time.time()
         frame_count += 1
+
+        current_cordinate = drone.get_location()
+        current = (current_cordinate.lat,current_cordinate.lon)
 
         left_img = camera.get_video(1)
         right_img = camera.get_video(0)
@@ -197,7 +166,8 @@ def flight_record():
         pitch = drone.read_channel(2)  # forward/backward
         throttle = drone.read_channel(3)  # up/down
         yaw = drone.read_channel(4)  # yaw
-        target_distance, path_distance = calculate_path_distance(target,start)
+
+        target_distance, path_distance = gps.calculate_path_distance(target, start, current)
 
         write_train_data(left_img, right_img, bgrd_img, target_distance, path_distance, roll, pitch, throttle, yaw, frame_count, 1)
         
