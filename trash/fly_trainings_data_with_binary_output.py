@@ -17,8 +17,7 @@ import numpy as np
 import math
 import threading
 import concurrent
- 
-target = (0,0) #first run get_gps.py to get target location
+
 
 record_button_channel = 8
 
@@ -64,7 +63,7 @@ def write_image(img, path, cam_name):
     cam_path = os.path.join(path, cam_name)
     cv2.imwrite(cam_path, img) 
 
-def write_train_data(left_img, right_img, bgrd_img, vel_x, vel_y, vel_z, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, framecount, mode):
+def write_train_data(left_img, right_img, bgrd_img, target_distance, path_distance, roll, pitch, throttle, yaw, framecount, mode):
 
     cam_name = str(framecount) + '_cam-image.jpg'
 
@@ -79,7 +78,7 @@ def write_train_data(left_img, right_img, bgrd_img, vel_x, vel_y, vel_z, target_
     # print(throttle)
     # print(yaw)
     # print(framecount) `   
-    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/path_distance": heading_delta, "cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "gps/target_distance": target_distance, "gps/path_distance": path_distance,"cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
     
     jsonName = "record_" + str(framecount) + '.json'
     jsonPath = os.path.join(control_dir, jsonName)
@@ -112,8 +111,26 @@ def flight():
 
     # 3000 good PWM value?
     while drone.read_channel(record_button_channel) < 1500:
-        print("WAITING")
-        time.sleep(0.1)
+        start_time = time.time()
+        frame_count += 1
+
+        left_img = camera.get_video(1)
+        right_img = camera.get_video(0)
+        right_img = cv2.rotate(right_img, cv2.cv2.ROTATE_180)
+        bgrd_img = zed.get_rgbd_image()
+       
+        #cv2.imshow("left", left_img)
+        #cv2.imshow("right", right_img)
+        #cv2.imshow("LEFT", rgb_img)
+
+        #cv2.waitKey(1)
+
+        throttle = drone.read_channel(3)
+        if throttle > throttle_threshold:
+            write_train_data(left_img, right_img, bgrd_img, 0, 0, 0, 0, 0, 0, frame_count, 0)
+        
+        end_time = time.time()
+        print("FPS: " + str(1/(end_time-start_time)))
 
     return "flight_record"
 
@@ -126,7 +143,7 @@ def flight_record():
     start_cordinate = drone.get_location()
     start = (start_cordinate.lat,start_cordinate.lon)
 
-    #target = gps.calculate_target(start,drone.get_heading()) 
+    target = gps.calculate_target(start,drone.get_heading()) 
 
     print("start location: " + str(start))
     print("target location: " + str(target))
@@ -156,14 +173,12 @@ def flight_record():
         yaw = drone.read_channel(4)  # yaw
 
         target_distance, path_distance = gps.calculate_path_distance(target, start, current)
-        heading_delta = gps.calculate_heading_difference(drone.get_heading(),target,current)
 
-        vel_x, vel_y, vel_z = drone.get_velocity()
-
-        write_train_data(left_img, right_img, bgrd_img, vel_x, vel_y, vel_z, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, frame_count, 1)
+        if throttle > throttle_threshold:
+            write_train_data(left_img, right_img, bgrd_img, target_distance, path_distance, roll, pitch, throttle, yaw, frame_count, 1)
         
         end_time = time.time()
-        #print("RECORDING > FPS: " + str(1/(end_time-start_time)))
+        print("FPS: " + str(1/(end_time-start_time)))
 
     return "flight"
 
