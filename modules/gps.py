@@ -3,8 +3,7 @@ from numpy.linalg import lstsq
 import math
 import scipy.odr as odr
 import matplotlib.pyplot as plt
-
-
+from geographiclib.geodesic import Geodesic
 
 
 def calculate_path_distance(target, start, current, vis=False): #current_cordinate = drone.get_location()  current = np.asarray((current_cordinate.lat,current_cordinate.lon))
@@ -66,6 +65,11 @@ def calculate_path_distance(target, start, current, vis=False): #current_cordina
     return target_distance, path_distance
     
 
+def calculate_heading_difference(heading,target,current):
+    brng = Geodesic.WGS84.Inverse(target[0], target[1], current[0], current[1])['azi1']
+    return heading - brng
+
+
 def calculate_target(start,heading):
     distance_to_target = 50 #meter
     print("heading: " + str(heading))
@@ -77,6 +81,6 @@ def calculate_target(start,heading):
     return (x,y)
 
 if __name__ == "__main__":
-    target = calculate_target((51.45068,5.45525),45)
-    calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
+    #target = calculate_target((51.45068,5.45525),45)
+    #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
     #calculate_path_distance((5,10),(20,40),(10,35))
