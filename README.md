@@ -21,12 +21,13 @@ We use these [python](https://www.python.org/) packages to make our drone fly au
 - Dronekit
 - pyserial
 - keyboard
+- simple-pid
 
 Install the packages using the following command:
 
 ```sh
 python -m pip install --upgrade pip
-python -m pip install scikit-build cmake opencv-python numpy dronekit pyserial keyboard
+python -m pip install scikit-build cmake opencv-python numpy dronekit pyserial keyboard simple-pid
 ```
 
 ## Scripts
