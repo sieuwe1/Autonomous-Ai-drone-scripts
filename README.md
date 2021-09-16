@@ -16,11 +16,18 @@ Our quadcopter is fitted with a [Jetson Nano](https://www.nvidia.com/en-us/auton
 We use these [python](https://www.python.org/) packages to make our drone fly autonomously:
 
 - Jetson Inference from https://github.com/dusty-nv/jetson-inference
-- Opencv
-- Numpy
+- OpenCV-python
+- NumPy
 - Dronekit
 - pyserial
 - keyboard
+
+Install the packages using the following command:
+
+```sh
+python -m pip install --upgrade pip
+python -m pip install scikit-build cmake opencv-python numpy dronekit pyserial keyboard
+```
 
 ## Scripts
 
