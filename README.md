@@ -11,24 +11,9 @@ Our quadcopter is fitted with a [Jetson Nano](https://www.nvidia.com/en-us/auton
 
 ![Drone image](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/F819741B-72A1-48B6-A64A-C11C24E5973E.jpeg)
 
-## Packages
+## Setup
 
-We use these [python](https://www.python.org/) packages to make our drone fly autonomously:
-
-- Jetson Inference from https://github.com/dusty-nv/jetson-inference, install by using [these instructions](https://github.com/dusty-nv/jetson-inference/blob/master/docs/building-repo-2.md)
-- OpenCV-python
-- NumPy
-- Dronekit
-- pyserial
-- keyboard
-- simple-pid
-
-Install the packages using the following command:
-
-```sh
-python -m pip install --upgrade pip
-python -m pip install scikit-build cmake opencv-python numpy dronekit pyserial keyboard simple-pid
-```
+To setup and build the project on a [NVIDIA Jetson Nano](https://developer.nvidia.com/embedded/jetson-nano-developer-kit), please follow the instruction located at [BUILD.md](BUILD.md). These instructions should guide you towards a fully operational Jetson Nano, including all the required software to start flying autonomously.
 
 ## Scripts
 
