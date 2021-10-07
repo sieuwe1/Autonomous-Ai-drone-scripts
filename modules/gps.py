@@ -17,7 +17,7 @@ def calculate_path_distance(target, start, current, vis=False): #current_cordina
     #calculate equation for line perpendicular to gps line
     m2 = (-1.0 / m1)
     b2 = current[1] - (m2 * current[0]) 
-    
+
     #calculate intersection
     x_intersect = (b1-b2) / (m2-m1)
     y_intersect = m1 * x_intersect + b1
@@ -69,7 +69,7 @@ def calculate_heading_difference(heading,target,current):
     brng = Geodesic.WGS84.Inverse(target[0], target[1], current[0], current[1])['azi1']
     return heading - brng
 
-
+# Not a comment
 def calculate_target(start,heading):
     distance_to_target = 50 #meter
     print("heading: " + str(heading))
@@ -83,4 +83,7 @@ def calculate_target(start,heading):
 if __name__ == "__main__":
     #target = calculate_target((51.45068,5.45525),45)
     #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
-    #calculate_path_distance((5,10),(20,40),(10,35))
+    print(calculate_path_distance((5,10),(20,40),(10,35))) # Nunbers are coordinates on earh, these are random pickde numbers
+                                   #Target Coordinates
+                                          #Begin Coordination
+                                                 #Current Location
