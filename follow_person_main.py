@@ -21,8 +21,6 @@ args = parser.parse_args()
 # config
 MAX_FOLLOW_DIST = 2                          #meter
 MAX_ALT =  2.5                                  #m
-MAX_SPEED = 4                                   #m/s
-MAX_ROTATION_DEG = 8                            #degree
 MAX_MA_X_LEN = 5
 MAX_MA_Z_LEN = 5
 MA_X = collections.deque(maxlen=MAX_MA_X_LEN)   #Moving Average X
@@ -67,6 +65,8 @@ def track():
         if len(detections) > 0:
             person_to_track = detections[0] # only track 1 person
             
+            print(person_to_track)
+
             person_center = person_to_track.Center # get center of person to track
 
             x_delta = vision.get_single_axis_delta(image_center[0],person_center[0]) # get x delta 

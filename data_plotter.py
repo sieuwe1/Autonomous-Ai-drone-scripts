@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-file1 = open('bench_test.txt', 'r')
+file1 = open('/home/sieuwe/Desktop/Autonomous-Attack-Drone-Ai-GPS-OLD/debug/ok2_velocity.txt', 'r')
 Lines = file1.readlines()
 
 data = []

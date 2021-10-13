@@ -81,6 +81,6 @@ def calculate_target(start,heading):
     return (x,y)
 
 if __name__ == "__main__":
-    #target = calculate_target((51.45068,5.45525),45)
-    #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
+    target = calculate_target((51.45068,5.45525),45)
+    calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
     #calculate_path_distance((5,10),(20,40),(10,35))

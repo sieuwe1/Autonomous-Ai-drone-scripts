@@ -29,7 +29,7 @@ def get_location():
 
 def get_altitude():
     global vehicle
-    return vehicle.attitude
+    return vehicle.location.global_relative_frame.alt
 
 def get_velocity():
     global vehicle
@@ -53,6 +53,9 @@ def get_heading():
 
 def get_EKF_status():
     return vehicle.ekf_ok
+
+def get_ground_speed():
+    return vehicle.groundspeed
 
 def read_channel(channel):
     return vehicle.channels[str(channel)]

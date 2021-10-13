@@ -6,14 +6,14 @@ import time
 USE_PID_YAW = True
 USE_PID_ROLL = False
 
-MAX_SPEED = 3       # M / s
+MAX_SPEED = 4       # M / s
 MAX_YAW = 15        # Degrees / s 
 
-P_YAW = 0.01
+P_YAW = 0.02 #orgineel 0.01
 I_YAW = 0
 D_YAW = 0
 
-P_ROLL = 0.3
+P_ROLL = 0.22
 I_ROLL = 0
 D_ROLL = 0
 
