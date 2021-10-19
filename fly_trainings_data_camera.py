@@ -17,7 +17,7 @@ import math
 import threading
 import concurrent
  
-target = (51.450487, 5.454721) #first run get_gps.py to get target location
+target = (51.45047075041008, 5.454691543317034) #first run get_gps.py to get target location
 
 record_button_channel = 6
 
@@ -56,11 +56,11 @@ def write_image(img, path, cam_name):
     cam_path = os.path.join(path, cam_name)
     cv2.imwrite(cam_path, img) 
 
-def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, framecount, debug=True):
+def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, framecount, coords, debug=True):
 
     cam_name = str(framecount) + '_cam-image.jpg'
 
-    #write_image(left_img,cam_left_dir,cam_name)
+    write_image(left_img,cam_left_dir,cam_name)
     if debug:
 
         print("[GPS] target_distance: " + str(target_distance) + "path_distance: " + str(path_distance) + "heading_delta: " + str(heading_delta))
@@ -68,14 +68,12 @@ def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance,
         print("[IMU] x: " + str(vel_x) + " y: " + str(vel_y) + " z: " + str(vel_z))
         print("[PIX] speed: " +  str(speed) + " altitude: " + str(alt)) 
 
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/latitude":coords[0], "gps/longtitude":coords[1], "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/path_distance": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
     
-    #json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/path_distance": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
-    
-    time.sleep(0.5)
-    #jsonName = "record_" + str(framecount) + '.json'
-    #jsonPath = os.path.join(control_dir, jsonName)
-    #with open(jsonPath, "w") as write_file:
-    #    json.dump(json_data, write_file)
+    jsonName = "record_" + str(framecount) + '.json'
+    jsonPath = os.path.join(control_dir, jsonName)
+    with open(jsonPath, "w") as write_file:
+        json.dump(json_data, write_file)
 
 
 def init():
@@ -89,7 +87,7 @@ def init():
     left_camera = camera.create_camera(0)
 
     drone.connect_drone('/dev/ttyACM0')
-    #drone.arm()
+    drone.arm()
     #drone.connect_drone('127.0.0.1:14551')
 
     return "flight"
@@ -127,7 +125,7 @@ def flight_record():
         current_location = (current_cordinate.lat,current_cordinate.lon)
         current_heading = drone.get_heading()
 
-        print("[CURRENT GPS] location " + str(current_location) + " heading " + str(current_heading)) #remove later
+        #print("[CURRENT GPS] location " + str(current_location) + " heading " + str(current_heading)) #remove later
 
         left_img = None #camera.get_video(1)
 
@@ -151,7 +149,7 @@ def flight_record():
 
         speed = drone.get_ground_speed()
 
-        write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, frame_count)
+        write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, current_location, frame_count)
         
         end_time = time.time()
         print("RECORDING > FPS: " + str(1/(end_time-start_time)))
