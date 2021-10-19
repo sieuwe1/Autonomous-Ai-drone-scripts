@@ -3,7 +3,6 @@ from numpy.linalg import lstsq
 import math
 import scipy.odr as odr
 import matplotlib.pyplot as plt
-from geographiclib.geodesic import Geodesic
 
 
 def calculate_path_distance(target, start, current, vis=False): #current_cordinate = drone.get_location()  current = np.asarray((current_cordinate.lat,current_cordinate.lon))
@@ -59,15 +58,16 @@ def calculate_path_distance(target, start, current, vis=False): #current_cordina
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     path_distance = (R * c) * 1000
 
-    print("target distance: " + str(target_distance))    
-    print("path distance: " + str(path_distance))
+   # print("target distance: " + str(target_distance))    
+   # print("path distance: " + str(path_distance))
 
     return target_distance, path_distance
     
 
 def calculate_heading_difference(heading,target,current):
-    brng = Geodesic.WGS84.Inverse(target[0], target[1], current[0], current[1])['azi1']
-    return heading - brng
+    brng = calculate_initial_compass_bearing(target,current)
+    print("bearing: " + str(brng))
+    return abs(heading - brng)
 
 
 def calculate_target(start,heading):
@@ -80,7 +80,47 @@ def calculate_target(start,heading):
 
     return (x,y)
 
+
+def calculate_initial_compass_bearing(pointA, pointB):
+    """
+    Calculates the bearing between two points.
+    The formulae used is the following:
+        θ = atan2(sin(Δlong).cos(lat2),
+                  cos(lat1).sin(lat2) − sin(lat1).cos(lat2).cos(Δlong))
+    :Parameters:
+      - `pointA: The tuple representing the latitude/longitude for the
+        first point. Latitude and longitude must be in decimal degrees
+      - `pointB: The tuple representing the latitude/longitude for the
+        second point. Latitude and longitude must be in decimal degrees
+    :Returns:
+      The bearing in degrees
+    :Returns Type:
+      float
+    """
+    if (type(pointA) != tuple) or (type(pointB) != tuple):
+        raise TypeError("Only tuples are supported as arguments")
+
+    lat1 = math.radians(pointA[0])
+    lat2 = math.radians(pointB[0])
+
+    diffLong = math.radians(pointB[1] - pointA[1])
+
+    x = math.sin(diffLong) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)
+            * math.cos(lat2) * math.cos(diffLong))
+
+    initial_bearing = math.atan2(x, y)
+
+    # Now we have the initial bearing but math.atan2 return values
+    # from -180° to + 180° which is not what we want for a compass bearing
+    # The solution is to normalize the initial bearing as shown below
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+
+    return compass_bearing
+
 if __name__ == "__main__":
-    target = calculate_target((51.45068,5.45525),45)
-    calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
+    #target = calculate_target((51.45068,5.45525),45)
+    #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
     #calculate_path_distance((5,10),(20,40),(10,35))
+    print(calculate_heading_difference(0,(51.45151947836706, 5.454749852487708), (51.45105133144536, 5.454776137667286)))

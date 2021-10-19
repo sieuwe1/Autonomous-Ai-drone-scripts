@@ -1,5 +1,7 @@
 # Fully autonomous AI powered drone
-This repository contains ready to use and extensively real life tested code for flying advanced quadcopters autonomosly
+This repository pushes to create an state of the art fully autonomous navigation and obstacle avoidance system for multi rotor vehicles. Our approach is based on the novel idea of an fully END-2-END AI model which takes the sensor inputs and directly output the desired control commands for the drone. Currently we are working on creating the necessary code for training and running this approach. 
+
+This project also contains an fully autonomous system for tracking a moving target using an Camera and an LiDAR. This sytem uses an AI based object detection model for detecting the target. This system has already been fully tested in real flights and is fully functional!
 
 ![Tracking demo gif](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/flight.gif)
 
