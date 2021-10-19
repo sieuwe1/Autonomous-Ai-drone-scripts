@@ -65,10 +65,15 @@ def calculate_path_distance(target, start, current, vis=False): #current_cordina
     
 
 def calculate_heading_difference(heading,target,current):
-    brng = calculate_initial_compass_bearing(target,current)
-    print("bearing: " + str(brng))
-    return abs(heading - brng)
+    brng = calculate_initial_compass_bearing(current,target)
+    #print("bearing: " + str(brng))
+    #print("heading: " + str(heading))
 
+    delta = abs(brng - heading)
+    if delta > 180:
+        return 360 - delta
+    else:
+        return delta 
 
 def calculate_target(start,heading):
     distance_to_target = 50 #meter
@@ -123,4 +128,5 @@ if __name__ == "__main__":
     #target = calculate_target((51.45068,5.45525),45)
     #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
     #calculate_path_distance((5,10),(20,40),(10,35))
-    print(calculate_heading_difference(0,(51.45151947836706, 5.454749852487708), (51.45105133144536, 5.454776137667286)))
+                                        #heading, target, current 
+    print(calculate_heading_difference(270,(51.45152420417108, 5.4547439964670446), (51.45224546110723, 5.454700931022534)))
