@@ -10,7 +10,7 @@ def get_image_size(camera_id):
 	return cams[camera_id].GetWidth(), cams[camera_id].GetHeight()
 
 def get_video(camera_id):
-    return jetson.utils.cudaToNumpy(cams[camera_id].Capture())
+    return cv2.cvtColor(jetson.utils.cudaToNumpy(cams[camera_id].Capture()),cv2.COLOR_RGB2BGR)
 
 def close_cameras():
     for cam in cams:

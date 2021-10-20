@@ -68,7 +68,7 @@ def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance,
         print("[IMU] x: " + str(vel_x) + " y: " + str(vel_y) + " z: " + str(vel_z))
         print("[PIX] speed: " +  str(speed) + " altitude: " + str(alt))
 
-    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/latitude":coords[0], "gps/longtitude":coords[1], "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/heading_delta": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/latitude":coords[0], "gps/longtitude":coords[1], "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/heading_delta": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name,  "framecount/count": framecount , "user/mode": "user"}
     jsonName = "record_" + str(framecount) + '.json'
     jsonPath = os.path.join(control_dir, jsonName)
     with open(jsonPath, "w") as write_file:
