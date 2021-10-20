@@ -1,4 +1,5 @@
 import jetson.utils
+import cv2
 
 cams = []
 
@@ -13,4 +14,14 @@ def get_video(camera_id):
 
 def close_cameras():
     for cam in cams:
-        cam.Close()
+        cam.Close()    
+
+if __name__ == "__main__":
+    create_camera(0)
+    
+    while True:
+        img = get_video(0)
+        cv2.imshow("camera", img)
+        cv2.waitKey(1)
+    
+    close_cameras()

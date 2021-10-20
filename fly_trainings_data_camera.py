@@ -56,7 +56,7 @@ def write_image(img, path, cam_name):
     cam_path = os.path.join(path, cam_name)
     cv2.imwrite(cam_path, img) 
 
-def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, framecount, coords, debug=True):
+def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance, path_distance, heading_delta, roll, pitch, throttle, yaw, coords, framecount,  debug=True):
 
     cam_name = str(framecount) + '_cam-image.jpg'
 
@@ -67,8 +67,9 @@ def write_train_data(left_img, vel_x, vel_y, vel_z, speed, alt, target_distance,
         print("[RC] roll: " + str(roll) + " pitch: " + str(pitch) + " throttle: ", str(throttle)+ " yaw: ", str(yaw))
         print("[IMU] x: " + str(vel_x) + " y: " + str(vel_y) + " z: " + str(vel_z))
         print("[PIX] speed: " +  str(speed) + " altitude: " + str(alt)) 
-
-    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/latitude":coords[0], "gps/longtitude":coords[1], "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/path_distance": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name, "Ai/mode": mode, "framecount/count": framecount , "user/mode": "user"}
+    
+    print(coords)
+    json_data = {"user/roll": roll, "user/pitch": pitch, "user/throttle": throttle, "user/yaw": yaw, "imu/vel_x": vel_x, "imu/vel_y": vel_y, "imu/vel_z": vel_z, "gps/latitude":coords[0], "gps/longtitude":coords[1], "gps/speed": speed, "gps/target_distance": target_distance, "gps/path_distance": path_distance, "gps/path_distance": heading_delta, "gps/altitude": alt, "cam/image_name": cam_name, "framecount/count": framecount , "user/mode": "user"}
     
     jsonName = "record_" + str(framecount) + '.json'
     jsonPath = os.path.join(control_dir, jsonName)
@@ -127,7 +128,7 @@ def flight_record():
 
         #print("[CURRENT GPS] location " + str(current_location) + " heading " + str(current_heading)) #remove later
 
-        left_img = None #camera.get_video(1)
+        left_img = camera.get_video(0)
 
         #cv2.imshow("left", left_img)
         #cv2.imshow("right", right_img)
