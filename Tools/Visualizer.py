@@ -4,7 +4,7 @@ import time
 
 folder = "/home/sieuwe/drone/Autonomous-Ai-drone-scripts/run3_jeton" #input("Please type root direction of data folder: ")
 
-playback_speed = 0.01
+playback_speed = 0.04
 
 count = 1
 
