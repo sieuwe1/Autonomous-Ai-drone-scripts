@@ -1,39 +1,55 @@
-import network
-
-import tensorflow as tf
-import numpy as np
+import os
+import glob
+import random
+import json
+import time
+import zlib
+from os.path import basename, join, splitext, dirname
+import pickle
 import pandas as pd
-from tensorflow import keras
-from tensorflow.keras.layers import layers
-from tensorflow.keras.models import sequential
-from tensorflow.keras.optimizers import adam
-from sklearn.preprocessing import MinMaxScaler
-
-# training_data = []
-# training_data = np.array(training_data)
+import cv2
+from matplotlib import image
+from matplotlib import pyplot
+from tensorflow.python import keras
+import numpy as np
 
 # Loading JSON into dataframe
-dataframe = pd.read_json(r'')
-dataframe.head()
+path_to_json = '/home/koen/Downloads/run3_jeton/control'
+path_to_img = '/home/koen/Downloads/run3_jeton/left_camera'
 
+# Loading in control dataframes
+
+json_pattern = os.path.join(path_to_json,'*.json')
+control_fl = glob.glob(json_pattern)
+
+control_dfs = []
+for file in control_fl:
+    with open(file) as f:
+        json_data = pd.json_normalize(json.loads(f.read()))
+    control_dfs.append(json_data)
+control_df = pd.concat(control_dfs, sort=False)
+
+# Filtering out input data
+control_df = \
+    control_df[[
+        "user/roll",
+        "user/pitch"
+    ]]
+
+# Loading in left_camera images into dataframes
+
+# img_pattern = os.path.join(path_to_img,'*.jpg')
+# img_fl = glob.glob(img_pattern)
+#
+# img_df = [cv2.imread(file) for file in img_fl]
+#
+# print(control_df.head())
+#
+# cv2.imshow('image',img_df[0])
+# cv2.waitKey(0)
 # Creating validation and training dataframe
-val_dataframe = dataframe.sample(frac=0.2, random_state=1337)
-train_dataframe = dataframe.drop(val_dataframe.index)
+# val_dataframe = dataframe.sample(frac=0.2, random_state=1337)
+# train_dataframe = dataframe.drop(val_dataframe.index)
 
-# Batching the datasets
 
-train_ds = train_ds.batch(32)
-val_ds = val_ds.batch(32)
-
-scaler = MinMaxScaler(feature_range=(0, 1))
-training_data = scaler.fit_transform(training_data.reshape(-1, 1))
-
-model = Sequential([
-    Dense(units=16, input_shape=(1,), activation='relu'),
-    Dense(units=32, activation='relu'),
-    Dense(units=2, activation='softmax')
-])
-
-model.compile(optimizer=Adam(learning_rate=0.0001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-model.fit(x=scaled_train_samples, y=train_labels, batch_size=10, epochs=30, shuffle=True, verbose=2)
 
