@@ -13,9 +13,18 @@ from matplotlib import pyplot
 from tensorflow.python import keras
 import numpy as np
 
+import math
+import os
+from time import time
+from typing import List, Dict, Union, Tuple
+
+from tensorflow.python.keras.models import load_model
+
+from network import default_imu
+
 # Loading JSON into dataframe
-path_to_json = '/home/koen/Downloads/run3_jeton/control'
-path_to_img = '/home/koen/Downloads/run3_jeton/left_camera'
+path_to_json = '/home/koen/Downloads/11-2-koen-sieuwe/control'
+path_to_img = '/home/koen/Downloads/11-2-koen-sieuwe/left_camera'
 
 # Loading in control dataframes
 
@@ -38,18 +47,22 @@ control_df = \
 
 # Loading in left_camera images into dataframes
 
-# img_pattern = os.path.join(path_to_img,'*.jpg')
-# img_fl = glob.glob(img_pattern)
+img_pattern = os.path.join(path_to_img,'*.jpg')
+img_fl = glob.glob(img_pattern)
+
+img_df = [cv2.imread(file) for file in img_fl]
 #
-# img_df = [cv2.imread(file) for file in img_fl]
-#
-# print(control_df.head())
+print(control_df.head())
+
+default_imu(100,control_df, img_df)
+
 #
 # cv2.imshow('image',img_df[0])
 # cv2.waitKey(0)
 # Creating validation and training dataframe
 # val_dataframe = dataframe.sample(frac=0.2, random_state=1337)
 # train_dataframe = dataframe.drop(val_dataframe.index)
+
 
 
 
