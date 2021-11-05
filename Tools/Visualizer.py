@@ -2,7 +2,7 @@ import cv2
 import json
 import time 
 
-folder = "/home/sieuwe/drone/Autonomous-Ai-drone-scripts/run3_jeton" #input("Please type root direction of data folder: ")
+folder = "/media/sieuwe/5d7c8e51-1631-4466-afac-90054f13d643/home/sieuwe/Desktop/Autonomous-Attack-Drone-Ai-GPS-OLD/recordings/11-2-koen-sieuwe" #input("Please type root direction of data folder: ")
 
 playback_speed = 0.04
 
@@ -16,8 +16,8 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
 
 def drawUI(img, data):
     cv2.putText(img, "TargetDistance: " + str(data['gps/target_distance']), (50,50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA)     
-    cv2.putText(img, "PathDistance: " + str(0), (50,100), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
-    cv2.putText(img, "HeadingDelta: " + str(data['gps/path_distance']), (50,150), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+    cv2.putText(img, "PathDistance: " + str(data['gps/path_distance']), (50,100), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+    cv2.putText(img, "HeadingDelta: " + str(data['gps/heading_delta']), (50,150), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
     cv2.putText(img, "Speed: " + str(data['gps/speed']), (50,200), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
     cv2.putText(img, "altitude: " + str(data['gps/altitude']), (50,250), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
 

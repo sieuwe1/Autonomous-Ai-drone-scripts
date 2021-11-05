@@ -65,9 +65,9 @@ def create_model():
     return model
 
 
-#model = create_model()
+model = create_model()
 
-#dot_img_file = 'model_1.png'
-#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+dot_img_file = 'model_1.png'
+tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%
