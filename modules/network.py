@@ -1,4 +1,4 @@
-# network file. Based on donkeycar network.py file.
+# network file. Based on donkeycar keras.py file.
 # %%
 
 import os
@@ -35,12 +35,12 @@ def create_encoder(img_in):
 def create_model():  
     input_shape = (300, 300, 3)
     
-    img_depth_in = Input(shape=input_shape, name='img_depth_in')
+    img_in = Input(shape=input_shape, name='img_in')
 
     #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
     metadata = Input(shape=(8,), name="path_distance_in")
 
-    x = create_encoder(img_depth_in)
+    x = create_encoder(img_in)
     x = Dense(100, activation='relu')(x)
     x = Dropout(.1)(x)
 
@@ -60,7 +60,7 @@ def create_model():
     for i in range(4):
         outputs.append(Dense(1, activation='linear', name='out_' + str(i))(z))
 
-    model = Model(inputs=[img_depth_in, metadata], outputs=outputs)
+    model = Model(inputs=[img_in, metadata], outputs=outputs)
 
     return model
 
