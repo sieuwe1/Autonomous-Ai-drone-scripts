@@ -3,10 +3,6 @@
 Author: Jelle Maas
 Date of writing: September 20th, 2021
 
-## Table of contents
-
-[[toc]]
-
 ## Context
 
 One of the first tasks for the autonomous drone project, was finding improvements to the current communication setup. The current workflow uses a router as an intermediate point to connect the drone and a laptop.

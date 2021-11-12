@@ -3,10 +3,6 @@
 Author: Jelle Maas
 Date of writing: September 28th, 2021
 
-## Table of contents
-* * *
-[[toc]]
-
 ## Context
 
 During the autonomous drone project, we had to reinstall the Jetson Nano operating system. This took a long time because there was no clear manual available. This document contains a manual to more easily reproduce the installation process of the operating system.
