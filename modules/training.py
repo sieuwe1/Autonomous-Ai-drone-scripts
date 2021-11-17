@@ -17,8 +17,8 @@ import os
 from time import time
 import network
 
-transfer = True
-data_folder = '/home/sieuwe/Desktop/dataset_POC/Training/'
+transfer = False
+data_folder = '/home/sieuwe/drone/Autonomous-Ai-drone-scripts/11-2-koen-sieuwe'
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
 
@@ -178,13 +178,13 @@ print("bounds_val: ", bounds_val)
 model = None
 #create model
 if transfer:
-    model, base_model = create_transfer_model()
+    model, base_model = network.create_transfer_model()
 
     for layer in base_model.layers:
         layer.trainable = False
 
 else:
-    model = create_model()
+    model = network.create_model()
 
 #compile model
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
