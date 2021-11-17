@@ -5,6 +5,7 @@ import random
 import json
 import time
 import zlib
+import matplotlib as plt
 from os.path import basename, join, splitext, dirname
 import cv2
 from matplotlib import image
@@ -14,7 +15,10 @@ import numpy as np
 import math
 import os
 from time import time
-from network import create_model
+import network
+
+transfer = True
+data_folder = '/home/sieuwe/Desktop/dataset_POC/Training/'
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
 
@@ -24,40 +28,55 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
     valueScaled = float(value - leftMin) / float(leftSpan)
     return rightMin + (valueScaled * rightSpan)
 
-# Loading JSON into dataframe
-path_to_json = '/home/sieuwe/Desktop/11-2-koen-sieuwe_1/control'
-path_to_img = '/home/sieuwe/Desktop/11-2-koen-sieuwe_1/left_camera'
-
 # Loading in control dataframes
-json_pattern = os.path.join(path_to_json,'*.json')
-control_files = glob.glob(json_pattern)
+
+folder_pattern = os.path.join(data_folder,'*/')
+folders = glob.glob(folder_pattern)
+
 data = []
 images = []
-for control_file in control_files:
-    sample = []
-    f = open(control_file)
-    json_data = json.load(f)
-    sample.append(json_data['user/roll'])
-    sample.append(json_data['user/pitch'])
-    sample.append(json_data['user/yaw'])
-    sample.append(json_data['user/throttle'])
-    #sample.append(json_data['gps/latitude'])
-    #sample.append(json_data['gps/longtitude'])
-    sample.append(json_data['gps/speed'])
-    sample.append(json_data['gps/target_distance'])
-    sample.append(json_data['gps/path_distance'])
-    sample.append(json_data['gps/heading_delta'])
-    sample.append(json_data['gps/altitude'])
-    sample.append(json_data['imu/vel_x'])
-    sample.append(json_data['imu/vel_y'])
-    sample.append(json_data['imu/vel_z'])
-    image_path = json_data['cam/image_name']
-    img = cv2.imread(path_to_img + "/" + image_path)
-    img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
-    normalizedImg = np.zeros((300, 300))
-    normalizedImg = cv2.normalize(img,  normalizedImg, 0, 1, cv2.NORM_MINMAX)
-    images.append(normalizedImg)
-    data.append(sample)
+
+print(folders)
+
+for folder in folders:
+    json_pattern = os.path.join(folder + str("control/"),'*.json')
+    control_files = glob.glob(json_pattern)
+
+    #print(control_files)
+
+    for control_file in control_files:
+        if os.path.getsize(control_file) > 250: #check if file is empty
+            sample = []
+
+            #print(control_file)
+
+            f = open(control_file)
+            json_data = json.load(f)
+
+            sample.append(json_data['user/roll'])
+            sample.append(json_data['user/pitch'])
+            sample.append(json_data['user/yaw'])
+            sample.append(json_data['user/throttle'])
+            #sample.append(json_data['gps/latitude'])
+            #sample.append(json_data['gps/longtitude'])
+            sample.append(json_data['gps/speed'])
+            sample.append(json_data['gps/target_distance'])
+            sample.append(json_data['gps/path_distance'])
+            sample.append(json_data['gps/heading_delta'])
+            sample.append(json_data['gps/altitude'])
+            sample.append(json_data['imu/vel_x'])
+            sample.append(json_data['imu/vel_y'])
+            sample.append(json_data['imu/vel_z'])
+            image_path = json_data['cam/image_name']
+
+            #print(folder + str("left_camera/") + image_path)
+
+            img = cv2.imread(folder + str("left_camera/") + image_path)
+            img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
+            normalizedImg = np.zeros((300, 300))
+            normalizedImg = cv2.normalize(img,  normalizedImg, 0, 1, cv2.NORM_MINMAX)
+            images.append(normalizedImg)
+            data.append(sample)
 
 #%%
 #split data into val and train 
@@ -156,8 +175,16 @@ print("-------------------------------------------------------------------------
 print("bounds_train: ", bounds_train)
 print("bounds_val: ", bounds_val)
 
+model = None
 #create model
-model =  create_model()
+if transfer:
+    model, base_model = create_transfer_model()
+
+    for layer in base_model.layers:
+        layer.trainable = False
+
+else:
+    model = create_model()
 
 #compile model
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
@@ -167,7 +194,7 @@ callback_early_stop = keras.callbacks.EarlyStopping(monitor='loss', patience=5, 
 
 history = model.fit(x=[img_x_train, data_x_train], y=[y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train],
 	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
-	epochs=10, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
+	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
 
 #save model
 model.save('trained_best_model.h5')

@@ -2,9 +2,10 @@ import cv2
 import json
 import time 
 import numpy as np
+import attention
 from tensorflow import keras
 
-folder = "/home/sieuwe/Desktop/11-2-koen-sieuwe_1" #input("Please type root direction of data folder: ")
+folder = "/home/sieuwe/Desktop/dataset_POC/Training/temp/Run5" #input("Please type root direction of data folder: ")
 
 playback_speed = 0.04
 
@@ -13,7 +14,8 @@ count = 1
 def predict(model, img, json_data):
 
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
-
+    normalizedImg = np.zeros((300, 300))
+    normalizedImg = cv2.normalize(img,  normalizedImg, 0, 1, cv2.NORM_MINMAX)
 
     #sample.append(json_data['gps/latitude'])
     #sample.append(json_data['gps/longtitude'])
@@ -29,7 +31,16 @@ def predict(model, img, json_data):
     data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
     #print(img.shape)
 
-    preds = model.predict([[img] , [data]])
+    preds = model.predict([[normalizedImg] , [data]])
+
+
+    #last_conv_layer_name = "conv2d_11"
+    #img_array = attention.get_img_array(normalizedImg, size=(300,300))
+    #heatmap = attention.make_gradcam_heatmap(img_array, data, model, last_conv_layer_name)
+    # Display heatmap
+    #plt.matshow(heatmap)
+    #plt.show()
+
 
     print(preds)
     
@@ -66,10 +77,10 @@ def drawUI(img, data, predicted):
     cv2.circle(img,(roll,pitch),20,(255,0,0),-1)
 
     #draw predicted
-    predicted_throttle = map(predicted[3], -10, 30, 1374, 1787)
-    predicted_yaw = map(predicted[2], -10, 30, 1159, 1990)
-    predicted_pitch = map(predicted[1], -10, 30, 1127, 2000)
-    predicted_roll = map(predicted[0], -10, 30, 1091, 1826)
+    predicted_throttle = map(predicted[3], 0, 1, 1374, 1787)
+    predicted_yaw = map(predicted[2], 0, 1, 1159, 1990)
+    predicted_pitch = map(predicted[1], 0, 1, 1127, 2000)
+    predicted_roll = map(predicted[0], 0, 1, 1091, 1826)
 
     #print("throttle: ", predicted_throttle)
     #print("yaw: ", predicted_yaw)
@@ -90,11 +101,10 @@ def drawUI(img, data, predicted):
 model = keras.models.load_model('trained_best_model.h5')
 
 while True:
-
     f = open(folder + "/control/record_" + str(count) + ".json")
     data = json.load(f)
     img = cv2.imread(folder + "/left_camera/" + data['cam/image_name'])
-
+    
     predicted = predict(model,img,data)
 
     img = drawUI(img, data, predicted)

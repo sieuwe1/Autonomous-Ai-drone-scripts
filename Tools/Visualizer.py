@@ -2,7 +2,7 @@ import cv2
 import json
 import time 
 
-folder = "/media/sieuwe/5d7c8e51-1631-4466-afac-90054f13d643/home/sieuwe/Desktop/Autonomous-Attack-Drone-Ai-GPS-OLD/recordings/11-2-koen-sieuwe" #input("Please type root direction of data folder: ")
+folder = "/home/sieuwe/Desktop/dataset_POC/Testing/Test_run" #input("Please type root direction of data folder: ")
 
 playback_speed = 0.04
 

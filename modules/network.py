@@ -14,7 +14,40 @@ from tensorflow.python.keras.layers.merge import concatenate
 from tensorflow.python.keras.layers import LSTM
 from tensorflow.python.keras.layers.wrappers import TimeDistributed as TD
 from tensorflow.python.keras.layers import Conv3D, MaxPooling3D, Cropping3D, Conv2DTranspose
+from tensorflow.keras.applications.inception_v3 import InceptionV3
 
+def create_transfer_model():
+    input_shape = (300, 300, 3)
+
+    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=input_shape)
+    
+    x = base_model.output
+    x = Flatten(name='flattened')(x)
+    x = Dense(100, activation='relu')(x)
+    x = Dropout(.1)(x)
+
+    #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
+    metadata = Input(shape=(8,), name="path_distance_in")
+
+    y = metadata
+    y = Dense(14, activation='relu')(y)
+    y = Dense(14, activation='relu')(y)
+    y = Dense(14, activation='relu')(y)
+
+    z = concatenate([x, y])
+    z = Dense(50, activation='relu')(z)
+    z = Dropout(.1)(z)
+    z = Dense(50, activation='relu')(z)
+    z = Dropout(.1)(z)
+
+    outputs = []  # will be throttle, yaw, pitch, roll
+
+    for i in range(4):
+        outputs.append(Dense(1, activation='linear', name='out_' + str(i))(z))
+
+    model = Model(inputs=[base_model.input, metadata], outputs=outputs)
+
+    return model, base_model
 
 def create_encoder(img_in):
     x = img_in
@@ -65,9 +98,11 @@ def create_model():
     return model
 
 
-model = create_model()
 
-dot_img_file = 'model_1.png'
-tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+#model = create_model()
+#model = create_transfer_model()
+
+#dot_img_file = 'model_1.png'
+#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%
