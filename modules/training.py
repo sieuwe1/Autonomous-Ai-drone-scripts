@@ -5,7 +5,7 @@ import random
 import json
 import time
 import zlib
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from os.path import basename, join, splitext, dirname
 import cv2
 from matplotlib import image
@@ -18,7 +18,9 @@ from time import time
 import network
 
 transfer = False
-data_folder = '/home/sieuwe/drone/Autonomous-Ai-drone-scripts/11-2-koen-sieuwe'
+data_folder = '/home/drone/Desktop/dataset_POC/Training'
+#data_folder = '/home/drone/Desktop/11-2-koen-sieuwe'
+
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
 
@@ -192,16 +194,23 @@ model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 #train model
 callback_early_stop = keras.callbacks.EarlyStopping(monitor='loss', patience=5, min_delta= .0005)
 
-history = model.fit(x=[img_x_train, data_x_train], y=[y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train],
-	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
+history = model.fit(x=[np.array(img_x_train), np.array(data_x_train)], y=[np.array(y_roll_train),np.array(y_pitch_train),np.array(y_yaw_train),np.array(y_throttle_train)],
+	validation_data=([np.array(img_x_val), np.array(data_x_val)], [np.array(y_roll_val),np.array(y_pitch_val),np.array(y_yaw_val),np.array(y_throttle_val)]),
 	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
+
+#history = model.fit(x=[img_x_train, data_x_train], y=[y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train],
+#	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
+#	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
+
 
 #save model
 model.save('trained_best_model.h5')
 
+print(history.history)
+
 #plot summary
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
+plt.plot(history.history['out_0_accuracy'])
+plt.plot(history.history['val_out_0_accuracy'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
