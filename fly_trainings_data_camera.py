@@ -2,21 +2,12 @@ import sys
 sys.path.insert(1, 'modules')
 import drone
 import camera
-import json
 import gps
-import collections
-import cv2
 import time
 import os
-import argparse
 import cv2
-import collections
 import json
-import numpy as np
-import math
-import threading
-import concurrent
- 
+
 target = (51.45047075041008, 5.454691543317034) #first run get_gps.py to get target location
 
 record_button_channel = 6
