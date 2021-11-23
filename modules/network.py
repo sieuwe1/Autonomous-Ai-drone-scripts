@@ -5,26 +5,26 @@ import os
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python import keras
 from tensorflow.python.keras.layers import Input, Dense, Add
 from tensorflow.python.keras.models import Model, Sequential
-from tensorflow.python.keras.layers import Convolution2D, MaxPooling2D, Reshape, BatchNormalization
+from tensorflow.python.keras.layers import Convolution2D, MaxPooling2D, Reshape, BatchNormalization, GlobalAveragePooling2D
 from tensorflow.python.keras.layers import Activation, Dropout, Flatten, Cropping2D, Lambda
 from tensorflow.python.keras.layers.merge import concatenate
 from tensorflow.python.keras.layers import LSTM
 from tensorflow.python.keras.layers.wrappers import TimeDistributed as TD
 from tensorflow.python.keras.layers import Conv3D, MaxPooling3D, Cropping3D, Conv2DTranspose
-from tensorflow.keras.applications.inception_v3 import InceptionV3
+from tensorflow.keras.applications import InceptionV3, VGG16
 
 def create_transfer_model():
-    input_shape = (300, 300, 3)
 
-    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=input_shape)
-    
-    x = base_model.output
-    x = Flatten(name='flattened')(x)
-    x = Dense(100, activation='relu')(x)
-    x = Dropout(.1)(x)
+    #base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=input_shape)
+    base_model = VGG16(weights='imagenet',include_top=False,input_shape=(300, 300, 3))
+
+
+    image_input = Input(shape=(300, 300, 3), name='image')
+    vgg16 = base_model(image_input)
+    x = Flatten()(vgg16) 
+    x = Dense(256, activation='relu')(x)
 
     #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
     metadata = Input(shape=(8,), name="path_distance_in")
@@ -45,7 +45,7 @@ def create_transfer_model():
     for i in range(4):
         outputs.append(Dense(1, activation='linear', name='out_' + str(i))(z))
 
-    model = Model(inputs=[base_model.input, metadata], outputs=outputs)
+    model = Model(inputs=[image_input, metadata], outputs=outputs)
 
     return model, base_model
 
