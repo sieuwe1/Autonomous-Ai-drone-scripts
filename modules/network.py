@@ -100,9 +100,9 @@ def create_model():
 
 
 #model = create_model()
-#model = create_transfer_model()
+model = create_transfer_model()
 
-#dot_img_file = 'model_1.png'
-#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+dot_img_file = 'model_432.png'
+tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%

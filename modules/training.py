@@ -72,7 +72,6 @@ for folder in folders:
             image_path = json_data['cam/image_name']
 
             #print(folder + str("left_camera/") + image_path)
-
             img = cv2.imread(folder + str("left_camera/") + image_path)
             img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
             normalizedImg = np.zeros((300, 300))
