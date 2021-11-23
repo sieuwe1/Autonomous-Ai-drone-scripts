@@ -16,10 +16,11 @@ import math
 import os
 from time import time
 import network
+import tensorflow as tf
 
 transfer = True
 data_folder = '/home/drone/Desktop/dataset_POC/Training'
-#data_folder = '/home/drone/Desktop/11-2-koen-sieuwe'
+#data_folder = '/home/drone/Desktop/dataset_POC/Training/shortend'
 
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
@@ -189,7 +190,9 @@ else:
     model = network.create_model()
 
 #compile model
-model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+crit = tf.keras.losses.Huber(delta=1.0, reduction="auto", name="huber_loss")
+opt = tf.keras.optimizers.Nadam(learning_rate=0.0001)
+model.compile(loss=crit, optimizer=opt, metrics=['accuracy'])
 
 #train model
 callback_early_stop = keras.callbacks.EarlyStopping(monitor='loss', patience=5, min_delta= .0005)

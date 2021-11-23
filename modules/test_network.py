@@ -5,12 +5,12 @@ import numpy as np
 from tensorflow import keras
 import network
 
-folder = "/home/drone/Desktop/dataset_POC/Training/Run4" #input("Please type root direction of data folder: ")
+folder = "/home/drone/Desktop/dataset_POC/Testing/Test_run" #input("Please type root direction of data folder: ")
 playback_speed = 0.03
 count = 1
 transfer = True
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set_vgg16_tranfer_weights.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set_vgg16_tranfer_weights_2.h5'
 
 def predict(model, img, json_data):
 
@@ -20,24 +20,31 @@ def predict(model, img, json_data):
 
     #sample.append(json_data['gps/latitude'])
     #sample.append(json_data['gps/longtitude'])
-    speed = map(json_data['gps/speed'],0.038698211312294006, 3.2179622650146484 , 0,1)
-    target_distance = map(json_data['gps/target_distance'], 2.450411854732669, 80.67362590478994, 0,1)
-    path_distance = map(json_data['gps/path_distance'], 0, 13.736849872936324, 0,1)
-    heading_delta = map(json_data['gps/heading_delta'], 0.012727423912849645, 155.99795402967004, 0,1)
-    altitude = map(json_data['gps/altitude'], 0.093, 6.936, 0,1)
-    vel_x = map(json_data['imu/vel_x'], -3.19, 3.03, 0,1)
-    vel_y = map(json_data['imu/vel_y'], -3.03, 1.46, 0,1)
-    vel_z = map(json_data['imu/vel_z'], -1.17, 1.07, 0,1)
+    speed = map_decimal(json_data['gps/speed'],0.038698211312294006, 3.2179622650146484 , 0,1)
+    target_distance = map_decimal(json_data['gps/target_distance'], 2.450411854732669, 80.67362590478994, 0,1)
+    path_distance = map_decimal(json_data['gps/path_distance'], 0, 13.736849872936324, 0,1)
+    heading_delta = map_decimal(json_data['gps/heading_delta'], 0.012727423912849645, 155.99795402967004, 0,1)
+    altitude = map_decimal(json_data['gps/altitude'], 0.093, 6.936, 0,1)
+    vel_x = map_decimal(json_data['imu/vel_x'], -3.19, 3.03, 0,1)
+    vel_y = map_decimal(json_data['imu/vel_y'], -3.03, 1.46, 0,1)
+    vel_z = map_decimal(json_data['imu/vel_z'], -1.17, 1.07, 0,1)
     
     data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+    print(data)
 
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
 
     preds = model.predict(sample_to_predict)
 
-    print(preds)
-    
+    #print(preds)
+
     return preds
+
+def map_decimal(value, leftMin, leftMax, rightMin, rightMax):
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+    valueScaled = float(value - leftMin) / float(leftSpan)
+    return round(rightMin + (valueScaled * rightSpan),5)
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
     leftSpan = leftMax - leftMin
@@ -96,7 +103,7 @@ model = None
 #create model
 if transfer:
     model, base_model = network.create_transfer_model()
-    model.weights = keras.models.load_weights(model_dir)
+    model.load_weights(model_dir)
 
 else:
     model = keras.models.load_model(model_dir)
