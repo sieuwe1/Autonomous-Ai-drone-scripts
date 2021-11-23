@@ -16,10 +16,11 @@ import math
 import os
 from time import time
 import network
+import tensorflow as tf
 
-transfer = False
+transfer = True
 data_folder = '/home/drone/Desktop/dataset_POC/Training'
-#data_folder = '/home/drone/Desktop/11-2-koen-sieuwe'
+#data_folder = '/home/drone/Desktop/dataset_POC/Training/shortend'
 
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
@@ -188,11 +189,17 @@ else:
     model = network.create_model()
 
 #compile model
-model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+crit = tf.keras.losses.Huber(delta=1.0, reduction="auto", name="huber_loss")
+opt = tf.keras.optimizers.Nadam(learning_rate=0.0001)
+model.compile(loss=crit, optimizer=opt, metrics=['accuracy'])
 
 #train model
 callback_early_stop = keras.callbacks.EarlyStopping(monitor='loss', patience=5, min_delta= .0005)
 
+#save logs with tensorflow
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir="./logs")
+
+#train model
 history = model.fit(x=[np.array(img_x_train), np.array(data_x_train)], y=[np.array(y_roll_train),np.array(y_pitch_train),np.array(y_yaw_train),np.array(y_throttle_train)],
 	validation_data=([np.array(img_x_val), np.array(data_x_val)], [np.array(y_roll_val),np.array(y_pitch_val),np.array(y_yaw_val),np.array(y_throttle_val)]),
 	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
@@ -203,7 +210,8 @@ history = model.fit(x=[np.array(img_x_train), np.array(data_x_train)], y=[np.arr
 
 
 #save model
-model.save('trained_best_model.h5')
+model.save_weights('trained_best_model_full_set_vgg16_tranfer_weights_2.h5')
+#model.save('trained_best_model_full_set_vgg16_tranfer.h5')
 
 print(history.history)
 
