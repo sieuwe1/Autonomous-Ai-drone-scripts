@@ -11,6 +11,7 @@ from tensorflow.keras import models
 from tensorflow.keras import layers
 from tensorflow.keras.applications import InceptionV3, VGG16
 
+from positional_encodings import PositionalEncodingPermute1D 
 
 """
 Inception/MobileNet -> Transformer (one-image) -> LSTM
@@ -26,6 +27,7 @@ Inception/MobileNet(t){n,256} --------------/
 Inception/MobileNet(t-1){n,256} -----------/
 Inception/MobileNet(t-2){n,256} ----------/
 """
+
 
 class TransformerBlock(layers.Layer):
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
@@ -47,6 +49,17 @@ class TransformerBlock(layers.Layer):
         ffn_output = self.dropout2(ffn_output, training=training)
         return self.layernorm2(out1 + ffn_output)
 
+class TokenAndPositionEmbedding(layers.Layer):
+    def __init__(self, maxlen, vocab_size, embed_dim):
+        super(TokenAndPositionEmbedding, self).__init__()
+        self.pos_emb = layers.Embedding(input_dim=maxlen, output_dim=embed_dim, input_length=10)
+
+    def call(self, x):
+        maxlen = tf.shape(x)[-1]
+        positions = tf.range(start=0, limit=maxlen, delta=1)
+        positions = self.pos_emb(positions)
+        return positions
+
 def create_transformer_model():
     
     base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
@@ -54,12 +67,23 @@ def create_transformer_model():
 
     x = base_model(image_input)
     x = layers.Dense(256, activation='relu')(x)
+    x = keras.layers.Reshape((1,256), input_shape=(256,))(x)
 
     #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
     # Input(shape(8, 256)) # 1500 -> [0.5, 0.1, 0.3, 0.1 0.6] # 0.5 -> [0.1, 0.1]
-    #metadata = layers.Input(shape=(8,), name="path_distance_in")
+    maxlen = 8
+    metadata = layers.Input(shape=(maxlen,), name="path_distance_in")
+    
+    #emb_td = TokenAndPositionEmbedding(maxlen, 180, 256)
+    #y = emb_td(metadata[0]) 
 
-    z = layers.Dense(50, activation='relu')(x)
+    y = layers.Embedding(input_dim=maxlen, output_dim=256)(metadata)
+    z = layers.Concatenate(axis=1)([y,x])
+    z = TransformerBlock(256, 2, 32)(z)
+    
+    #y = layers.Embedding(input_dim=2000, output_dim=256, input_length=8)
+    z = layers.Dense(50, activation='relu')(z[:,0])
+    print(z.shape)
     z = layers.Dropout(.1)(z)
     z = layers.Dense(50, activation='relu')(z)
     z = layers.Dropout(.1)(z)
@@ -69,7 +93,7 @@ def create_transformer_model():
     for i in range(4):
         outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
 
-    model = models.Model(inputs=[image_input], outputs=outputs)
+    model = models.Model(inputs=[image_input,metadata], outputs=outputs)
 
     return model, base_model
 
@@ -90,7 +114,8 @@ def create_transfer_model():
     y = layers.Dense(14, activation='relu')(y)
     y = layers.Dense(28, activation='relu')(y)
     y = layers.Dense(46, activation='relu')(y)
-
+    
+    print(y.shape)
     z = layers.concatenate([x, y])
     z = layers.Dense(50, activation='relu')(z)
     z = layers.Dropout(.1)(z)
