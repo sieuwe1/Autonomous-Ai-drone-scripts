@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts_new/models/trained_best_model_full_set_LINEAR.h5'
-test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts_new/Tools/eval_data.npy'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/Inception_sigmoid_MLP.h5'
+test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.npy'
 data = np.load(test_dir,allow_pickle=True)
 
 #load train data

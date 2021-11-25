@@ -12,7 +12,7 @@ import network
 import tensorflow as tf
 
 transfer = True
-model_name = 'trained_best_model_full_set_inception_tranfer_weights_with_preprocessor.h5'
+model_name = 'Inception_sigmoid_MLP.h5'
 data = np.load('/home/drone/Desktop/data.npy',allow_pickle=True)
 
 #load train data

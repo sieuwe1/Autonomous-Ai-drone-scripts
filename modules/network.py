@@ -106,39 +106,6 @@ def create_transfer_model():
 
     return model, base_model
 
-def create_transfer_model():
-
-    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3))
-    #base_model = VGG16(weights='imagenet',include_top=False,input_shape=(300, 300, 3))
-    image_input = layers.Input(shape=(300, 300, 3), name='image')
-    x = base_model(image_input)
-    x = layers.Flatten()(x) 
-    x = layers.Dense(256, activation='relu')(x)
-
-    #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
-    # Input(shape(8, 256)) # 1500 -> [0.5, 0.1, 0.3, 0.1 0.6] # 0.5 -> [0.1, 0.1]
-    metadata = layers.Input(shape=(8,), name="path_distance_in")
-
-    y = metadata
-    y = layers.Dense(14, activation='relu')(y)
-    y = layers.Dense(28, activation='relu')(y)
-    y = layers.Dense(46, activation='relu')(y)
-
-    z = layers.concatenate([x, y])
-    z = layers.Dense(50, activation='relu')(z)
-    z = layers.Dropout(.1)(z)
-    z = layers.Dense(50, activation='relu')(z)
-    z = layers.Dropout(.1)(z)
-
-    outputs = []  # will be throttle, yaw, pitch, roll
-
-    for i in range(4):
-        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
-
-    model = models.Model(inputs=[image_input, metadata], outputs=outputs)
-
-    return model, base_model
-
 def create_encoder(img_in):
     x = img_in
     x = layers.Convolution2D(24, (5, 5), strides=(2, 2), activation='relu')(x)

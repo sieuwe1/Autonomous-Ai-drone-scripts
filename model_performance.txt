@@ -1,0 +1,42 @@
+Model performance
+
+----------------------------------------------
+Naam trained_best_model_full_set_LINEAR.h5
+
+Samenvatting
+Eigen model / 3 laags MLP voor data 68 features / 6 laags conv encoder / simpele concat
+/ 2 laags MLP met linear output / optimzer nadam Learning rate = 0.0001 /
+
+Resultaat
+Average error: 0.03898868   sample count: 526
+Average roll error: 0.01059756
+Average pitch error: 0.053615604
+Average yaw error: 0.021289524
+Average throttle error: 0.040063895
+-----------------------------------------------
+
+Naam trained_best_model_full_set_inception_tranfer_SIGMOID.h5
+
+Samenvatting
+Eigen model met inception / 3 laags MLP voor data 68 features? / Inception encoder / simpele concat
+/ 2 laags MLP met linear output? / optimzer nadam Learning rate = 0.0001? /
+
+Resultaat
+Average error: 0.036253612   sample count: 526
+Average roll error: 0.0058760326
+Average pitch error: 0.077306695
+Average yaw error: 0.015800774
+Average throttle error: 0.068918824
+-------------------------------------------------
+
+Naam Inception_sigmoid_MLP.h5
+
+Samenvatting
+Eigen model met inception / 3 laags MLP voor data 68 features / Inception encoder / simpele concat
+/ 2 laags MLP met linear output / optimzer nadam Learning rate = 0.0001 /
+
+Average error: 0.04002616   sample count: 526
+Average roll error: 0.0057459637
+Average pitch error: 0.0841216
+Average yaw error: 0.019377805
+Average throttle error: 0.055043515
