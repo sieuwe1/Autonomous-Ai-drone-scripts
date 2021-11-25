@@ -5,18 +5,20 @@ import numpy as np
 from tensorflow import keras
 import network
 
-folder = "/home/drone/Desktop/dataset_POC/Testing/Test_run" #input("Please type root direction of data folder: ")
-playback_speed = 0.03
+folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
+playback_speed = 0.01 #0.03
 count = 1
-transfer = True
+transfer = False
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set_vgg16_tranfer_weights_2.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts_new/models/trained_best_model_full_set_LINEAR.h5'
 
 def predict(model, img, json_data):
 
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
     normalizedImg = np.zeros((300, 300))
     normalizedImg = cv2.normalize(img,  normalizedImg, 0, 1, cv2.NORM_MINMAX)
+
+    #cv2.imshow("300*300", img)
 
     #sample.append(json_data['gps/latitude'])
     #sample.append(json_data['gps/longtitude'])

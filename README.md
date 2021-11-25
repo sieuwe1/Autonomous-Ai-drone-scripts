@@ -8,6 +8,10 @@ This repository pushes to create an state of the art fully autonomous navigation
 This project also contains an fully autonomous system for tracking a moving target using an Camera and an LiDAR. This sytem uses an AI based object detection model for detecting the target. This system has already been fully tested in real flights and is fully functional!
 
 <p align="center">
+<img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/dronevis.gif.gif" alt="drawing" width="800"/>
+</p align="center">
+
+<p align="center">
 <img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/flight.gif" alt="drawing" width="800"/>
 </p align="center">
   
@@ -15,9 +19,9 @@ This project also contains an fully autonomous system for tracking a moving targ
 
 Our quadcopter is fitted with a [Jetson Nano](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/) running advanced AI models and algorithms real time on the edge on the quadcopter itself. This makes our quadcopter able to work fully autonomsly without the need of a data connection to offload heavy workloads. Because of optimizations our algorithms can work in the computational limited environment of the [Jetson Nano](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/).
 
-![Drone image](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/216C5829-F7F0-4B80-9CDA-27B1BF304F7F.jpeg)
+![Drone image](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/img1.jpg)
 
-![Drone image](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/F819741B-72A1-48B6-A64A-C11C24E5973E.jpeg)
+![Drone image](https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/img2.jpg)
 
 ## Setup
 
