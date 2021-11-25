@@ -7,13 +7,23 @@ This repository pushes to create an state of the art fully autonomous navigation
 
 This project also contains an fully autonomous system for tracking a moving target using an Camera and an LiDAR. This sytem uses an AI based object detection model for detecting the target. This system has already been fully tested in real flights and is fully functional!
 
+## Autonomous Point To Point Flight Demo 
 <p align="center">
-<img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/dronevis.gif.gif" alt="drawing" width="800"/>
+<img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/dronevis.gif" alt="drawing" width="800"/>
 </p align="center">
 
+This video shows the performance of our End-2-End AI based pilot compared to a human pilot on a real flight. The blue dots represent the joystick commands from the human pilot and the red dots represent the joystick commands from our Ai pilot. 
+
+Just take a look at how the Ai pilot avoids threes just like the human pilot!
+
+All tooling for gathering, training and validating Ai based pilots for pixhawk based multi rotors are avalible in this repo.
+
+## Autonomous Person Following Flight Demo 
 <p align="center">
 <img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/flight.gif" alt="drawing" width="800"/>
 </p align="center">
+
+This video shows the performance of our person following system. An AI model detects the person and a PID controller then follows the person.
   
 ## Hardware 
 
