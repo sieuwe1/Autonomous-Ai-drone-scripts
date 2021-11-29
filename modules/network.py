@@ -82,16 +82,23 @@ def create_transformer_model():
     z = TransformerBlock(256, 2, 32)(z)
     
     #y = layers.Embedding(input_dim=2000, output_dim=256, input_length=8)
-    z = layers.Dense(50, activation='relu')(z[:,0])
-    print(z.shape)
+    z = layers.Dense(128, activation='relu')(z[:,0])
     z = layers.Dropout(.1)(z)
-    z = layers.Dense(50, activation='relu')(z)
+    z = layers.Dense(128, activation='relu')(z)
     z = layers.Dropout(.1)(z)
 
     outputs = []  # will be throttle, yaw, pitch, roll
 
     for i in range(4):
-        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
+        a = layers.Dense(64, activation='relu')(z)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(a)) #sigmoid
 
     model = models.Model(inputs=[image_input,metadata], outputs=outputs)
 
