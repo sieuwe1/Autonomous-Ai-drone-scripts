@@ -1,10 +1,10 @@
 #%%
 import os
 import matplotlib.pyplot as plt
-from os.path import basename, join, splitext, dirname
 from matplotlib import image
 from matplotlib import pyplot
 from tensorflow import keras
+from keras.models import Model
 import numpy as np
 import os
 from time import time
@@ -12,8 +12,8 @@ import network
 import tensorflow as tf
 
 transfer = True
-model_name = 'Inception_sigmoid_MLP.h5'
-data = np.load('/home/drone/Desktop/data.npy',allow_pickle=True)
+model_name = 'Transformer_sigmoid_2_frozen.h5'
+data = np.load('/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/data.npy',allow_pickle=True)
 
 #load train data
 img_x_train = data[0]
@@ -22,6 +22,8 @@ y_roll_train = data[2]
 y_pitch_train = data[3]
 y_yaw_train = data[4]
 y_throttle_train = data[5]
+
+print(img_x_train[0])
 
 #load val data
 img_x_val = data[6]
@@ -34,7 +36,7 @@ y_throttle_val = data[11]
 model = None
 #create model
 if transfer:
-    model, base_model = network.create_transfer_model()
+    model, base_model = network.create_transformer_model()
 
     for layer in base_model.layers:
         layer.trainable = False
@@ -62,10 +64,19 @@ history = model.fit(x=[np.array(img_x_train), np.array(data_x_train)], y=[np.arr
 #	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
 #	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
 
+#%%
 
 #save model
-#model.save_weights(model_name)
-model.save(model_name)
+def freeze_layers(model):
+    for i in model.layers:
+        i.trainable = False
+        if isinstance(i, Model):
+            freeze_layers(i)
+    return model
+
+model_freezed = freeze_layers(model)
+model.save_weights(model_name)
+#model.save(model_name)
 
 print(history.history)
 

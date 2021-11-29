@@ -2,7 +2,7 @@
 # %%
 
 import imp
-import os
+#import os
 import numpy as np
 
 import tensorflow as tf
@@ -11,7 +11,7 @@ from tensorflow.keras import models
 from tensorflow.keras import layers
 from tensorflow.keras.applications import InceptionV3, VGG16
 
-from positional_encodings import PositionalEncodingPermute1D 
+#from positional_encodings import PositionalEncodingPermute1D 
 
 """
 Inception/MobileNet -> Transformer (one-image) -> LSTM
@@ -56,9 +56,15 @@ class TokenAndPositionEmbedding(layers.Layer):
 
     def call(self, x):
         maxlen = tf.shape(x)[-1]
-        positions = tf.range(start=0, limit=maxlen, delta=1)
+        positions = tf.range(start=0, limit=maxlen, delta=1) # [1...8]
         positions = self.pos_emb(positions)
         return positions
+
+def sinusoidal_embedding(x: np.array, dim=256):
+    position_enc = np.array([[_x / np.power(10000, 2*i/dim) for i in range(dim)] for _x in x])
+    position_enc[1:, 0::2] = np.sin(position_enc[1:, 0::2]) # dim 2i
+    position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])
+    return position_enc
 
 def create_transformer_model():
     
@@ -73,12 +79,13 @@ def create_transformer_model():
     # Input(shape(8, 256)) # 1500 -> [0.5, 0.1, 0.3, 0.1 0.6] # 0.5 -> [0.1, 0.1]
     maxlen = 8
     metadata = layers.Input(shape=(maxlen,), name="path_distance_in")
-    
-    #emb_td = TokenAndPositionEmbedding(maxlen, 180, 256)
-    #y = emb_td(metadata[0]) 
 
     y = layers.Embedding(input_dim=maxlen, output_dim=256)(metadata)
     z = layers.Concatenate(axis=1)([y,x])
+
+    #emb_td = TokenAndPositionEmbedding(maxlen or 9, 180, 256)
+    #z += emb_td(metadata[0]) 
+
     z = TransformerBlock(256, 2, 32)(z)
     
     #y = layers.Embedding(input_dim=2000, output_dim=256, input_length=8)
@@ -182,11 +189,11 @@ def create_model():
 
 
 #model = create_model()]
-model, base_model= create_transformer_model()
+#model, base_model= create_transformer_model()
 
 #print(base_model.summary())
 
-dot_img_file = 'model_432.png'
-tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+#dot_img_file = 'model_432.png'
+#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%

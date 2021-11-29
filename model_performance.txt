@@ -33,10 +33,23 @@ Naam Inception_sigmoid_MLP.h5
 
 Samenvatting
 Eigen model met inception / 3 laags MLP voor data 68 features / Inception encoder / simpele concat
-/ 2 laags MLP met linear output / optimzer nadam Learning rate = 0.0001 /
+/ 2 laags MLP met sigmoid output / optimzer nadam Learning rate = 0.0001 /
 
 Average error: 0.04002616   sample count: 526
 Average roll error: 0.0057459637
 Average pitch error: 0.0841216
 Average yaw error: 0.019377805
 Average throttle error: 0.055043515
+-----------------------------------------------
+
+Naam Transformer_sigmoid_2_frozen.h5
+
+Samenvatting
+Eerste transformer model / Inception / Positonal encoding / 9 laags transformer / 
+eerste output van transformer / 2 laags MLP met sigmoid output / optimzer nadam Learning rate = 0.0001 /
+
+Average error: 0.035737295   sample count: 526
+Average roll error: 0.005470746
+Average pitch error: 0.05526322
+Average yaw error: 0.014684197
+Average throttle error: 0.033870857
