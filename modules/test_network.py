@@ -5,12 +5,13 @@ import numpy as np
 from tensorflow import keras
 import network
 
-folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
-playback_speed = 0.01 #0.03
+#folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
+folder = '/home/drone/Desktop/dataset_POC/Testing/Run1'
+playback_speed = 0.03 #0.03
 count = 1
-transfer = False
+transfer = True
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts_new/models/trained_best_model_full_set_LINEAR.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/Transformer_sigmoid_2_frozen.h5'
 
 def predict(model, img, json_data):
 
@@ -104,7 +105,7 @@ model = None
 
 #create model
 if transfer:
-    model, base_model = network.create_transfer_model()
+    model, base_model = network.create_transformer_model()
     model.load_weights(model_dir)
 
 else:
