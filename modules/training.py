@@ -8,13 +8,14 @@ from keras.models import Model
 import numpy as np
 import os
 from time import time
+from datetime import datetime
 import network
 import tensorflow as tf
 
 transfer = True
 model_name = 'Transformer_sigmoid_2_frozen.h5'
-data = np.load('/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/data.npy', allow_pickle=True)
-checkpoint_path = f'./checkpoints/{time.now()}_checkpoint'
+data = np.load('/Users/koen/Workspace/Autonomous-Ai-drone-scripts/data/data.npy', allow_pickle=True)
+checkpoint_path = f'./checkpoints/{datetime.now()}_checkpoint'
 
 # load train data
 img_x_train = data[0]
