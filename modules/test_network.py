@@ -3,23 +3,21 @@ import json
 import time 
 import numpy as np
 from tensorflow import keras
+from keras.applications import imagenet_utils
 import network
 
 #folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
 folder = '/home/drone/Desktop/dataset_POC/Testing/Run1'
 playback_speed = 0.03 #0.03
 count = 1
-transfer = True
+transfer = False
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/Transformer_sigmoid_2_frozen.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/inceptionv3_new_preprocessor_sigmoid.h5'
 
 def predict(model, img, json_data):
 
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
-    normalizedImg = np.zeros((300, 300))
-    normalizedImg = cv2.normalize(img,  normalizedImg, 0, 1, cv2.NORM_MINMAX)
-
-    #cv2.imshow("300*300", img)
+    normalizedImg = imagenet_utils.preprocess_input(img, data_format=None, mode='tf') #inception uses 'tf' mode
 
     #sample.append(json_data['gps/latitude'])
     #sample.append(json_data['gps/longtitude'])
@@ -33,13 +31,8 @@ def predict(model, img, json_data):
     vel_z = map_decimal(json_data['imu/vel_z'], -1.17, 1.07, 0,1)
     
     data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
-    print(data)
-
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
-
     preds = model.predict(sample_to_predict)
-
-    #print(preds)
 
     return preds
 
@@ -105,7 +98,7 @@ model = None
 
 #create model
 if transfer:
-    model, base_model = network.create_transformer_model()
+    model, base_model = network.create_transfer_model()
     model.load_weights(model_dir)
 
 else:

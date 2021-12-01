@@ -2,7 +2,7 @@
 # %%
 
 import imp
-#import os
+import os
 import numpy as np
 
 import tensorflow as tf
@@ -127,7 +127,7 @@ def create_transfer_model():
     y = metadata
     y = layers.Dense(14, activation='relu')(y)
     y = layers.Dense(28, activation='relu')(y)
-    y = layers.Dense(46, activation='relu')(y)
+    y = layers.Dense(56, activation='relu')(y)
     
     print(y.shape)
     z = layers.concatenate([x, y])
@@ -138,8 +138,19 @@ def create_transfer_model():
 
     outputs = []  # will be throttle, yaw, pitch, roll
 
+    #for i in range(4):
+    #    outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
+
     for i in range(4):
-        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
+        a = layers.Dense(64, activation='relu')(z)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(a)) #sigmoid
 
     model = models.Model(inputs=[image_input, metadata], outputs=outputs)
 
@@ -175,8 +186,8 @@ def create_model():
 
     y = metadata
     y = layers.Dense(14, activation='relu')(y)
-    y = layers.Dense(28, activation='relu')(y)
-    y = layers.Dense(64, activation='relu')(y)
+    y = layers.Dense(14, activation='relu')(y)
+    y = layers.Dense(14, activation='relu')(y)
 
     z = layers.concatenate([x, y])
     z = layers.Dense(50, activation='relu')(z)
@@ -196,11 +207,12 @@ def create_model():
 
 
 #model = create_model()]
-#model, base_model= create_transformer_model()
+model, base_model= create_transfer_model()
 
 #print(base_model.summary())
 
-#dot_img_file = 'model_432.png'
-#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+dot_img_file = 'model_432.png'
+tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%
+
