@@ -42,7 +42,7 @@ Average yaw error: 0.019377805
 Average throttle error: 0.055043515
 -----------------------------------------------
 
-Naam Transformer_sigmoid_2_frozen.h5
+Naam Transformer_sigmoid_2_frozen.h5 !!!!verkeerd geimplementeerd!!!!
 
 Samenvatting
 Eerste transformer model / Inception / Positonal encoding / 9 laags transformer / 
@@ -53,3 +53,4 @@ Average roll error: 0.005470746
 Average pitch error: 0.05526322
 Average yaw error: 0.014684197
 Average throttle error: 0.033870857
+

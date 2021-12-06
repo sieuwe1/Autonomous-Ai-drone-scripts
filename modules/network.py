@@ -131,9 +131,9 @@ def create_transfer_model():
     
     print(y.shape)
     z = layers.concatenate([x, y])
-    z = layers.Dense(50, activation='relu')(z)
+    z = layers.Dense(128, activation='relu')(z)
     z = layers.Dropout(.1)(z)
-    z = layers.Dense(50, activation='relu')(z)
+    z = layers.Dense(128, activation='relu')(z)
     z = layers.Dropout(.1)(z)
 
     outputs = []  # will be throttle, yaw, pitch, roll
@@ -153,6 +153,30 @@ def create_transfer_model():
         outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(a)) #sigmoid
 
     model = models.Model(inputs=[image_input, metadata], outputs=outputs)
+
+    return model, base_model
+
+
+def create_transfer_image_only_model():
+
+    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
+    #base_model = VGG16(weights='imagenet',include_top=False,input_shape=(300, 300, 3))
+    image_input = layers.Input(shape=(300, 300, 3), name='image')
+    x = base_model(image_input)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+
+    outputs = []  # will be throttle, yaw, pitch, roll
+
+    #for i in range(4):
+    #    outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(z)) #sigmoid
+    for i in range(4):
+        outputs.append(layers.Dense(1, activation='sigmoid', name='out_' + str(i))(x))
+
+    model = models.Model(inputs=[image_input], outputs=outputs)
 
     return model, base_model
 
@@ -211,8 +235,8 @@ model, base_model= create_transfer_model()
 
 #print(base_model.summary())
 
-dot_img_file = 'model_432.png'
-tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+#dot_img_file = 'model_432.png'
+#tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
 # %%
 

@@ -8,8 +8,8 @@ import network
 
 transfer = False
 model_name = 'inceptionv3_new_preprocessor_sigmoid.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/inceptionv3_new_preprocessor_sigmoid.h5'
-test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/eval_data.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/models_new_preprocessor/inceptionv3_new_preprocessor_sigmoid.h5'
+test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
 #data = np.load(test_dir,allow_pickle=True)
 
 #load train data
@@ -48,6 +48,7 @@ print("Evaluate on test data")
 results = []
 for i in range(len(img_x_test)):
     sample_to_predict = [img_x_test[i].reshape((1,300,300,3)), np.array(data_x_test[i]).reshape((1,8))]
+    
     preds = model.predict(sample_to_predict)
 
     pitch_error = abs(y_pitch_test[i]- preds[1][0])  

@@ -14,8 +14,7 @@ import tensorflow as tf
 import h5py
 
 transfer = True
-<<<<<<< HEAD
-model_name = 'inceptionv3_new_preprocessor_sigmoid.h5'
+model_name = 'inceptionv3_new_preprocessor__sigmoid_lr_0.001.h5'
 
 #hf = h5py.File('/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/data_float16.h5', 'r')
 #load train data
@@ -32,23 +31,9 @@ model_name = 'inceptionv3_new_preprocessor_sigmoid.h5'
 #y_pitch_val = np.array(hf.get('y_pitch_val'))
 #y_yaw_val = np.array(hf.get('y_yaw_val'))
 #y_throttle_val = np.array(hf.get('y_throttle_val'))
-=======
-model_name = 'Transformer_sigmoid_2_frozen.h5'
-data = np.load('/Users/koen/Workspace/Autonomous-Ai-drone-scripts/data/data.npy', allow_pickle=True)
-checkpoint_path = f'./checkpoints/{datetime.now()}_checkpoint'
-
-# load train data
-img_x_train = data[0]
-data_x_train = data[1]
-y_roll_train = data[2]
-y_pitch_train = data[3]
-y_yaw_train = data[4]
-y_throttle_train = data[5]
->>>>>>> 5f95ef5cd0401afb26abdacb563ea1ebf297e483
 
 #hf.close()
 
-<<<<<<< HEAD
 #data = np.load('',allow_pickle=True)
 #load train data
 #img_x_train = data[0]
@@ -70,11 +55,13 @@ training_size = 17571 #get these values from preprocessor
 validation_size = 7529 #get these values from preprocessor
 batch_size = 32
 
-train_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/train'
-val_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/val'
+train_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/train'
+val_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/val'
 
 train_file_names = os.listdir(train_folder)
 val_file_names = os.listdir(val_folder)
+
+checkpoint_path = f'./checkpoints/{datetime.now()}_checkpoint'
 
 class data_generator(keras.utils.Sequence):
     def __init__(self, x_set, y_set, batch_size, train):
@@ -96,7 +83,9 @@ class data_generator(keras.utils.Sequence):
             y_yaw_train = np.array(hf.get('y_yaw_train'))
             y_throttle_train = np.array(hf.get('y_throttle_train'))
             hf.close()
-            return [img_x_train, data_x_train], [y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train]
+#!!!!!!!!            #return [img_x_train, data_x_train], [y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train]
+            return [img_x_train], [y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train]
+
         else:
             hf = h5py.File(val_folder + "/" + val_file_names[index], 'r')
             img_x_val = np.array(hf.get('img_x_val'))
@@ -106,25 +95,14 @@ class data_generator(keras.utils.Sequence):
             y_yaw_val = np.array(hf.get('y_yaw_val'))
             y_throttle_val = np.array(hf.get('y_throttle_val'))
             hf.close()
-            return [img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]
+#!!!!!!!!             #return [img_x_val , data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]
+            return [img_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]
 
 model = None
 
 #create model
-=======
-# load val data
-img_x_val = data[6]
-data_x_val = data[7]
-y_roll_val = data[8]
-y_pitch_val = data[9]
-y_yaw_val = data[10]
-y_throttle_val = data[11]
-
-model = None
-# create model
->>>>>>> 5f95ef5cd0401afb26abdacb563ea1ebf297e483
 if transfer:
-    model, base_model = network.create_transfer_model()
+    model, base_model = network.create_transfer_image_only_model() #network.create_transfer_model()
 
     for layer in base_model.layers:
         layer.trainable = False
@@ -134,7 +112,7 @@ else:
 
 # compile model
 crit = tf.keras.losses.Huber(delta=1.0, reduction="auto", name="huber_loss")
-opt = tf.keras.optimizers.Nadam(learning_rate=0.0001)
+opt = tf.keras.optimizers.Nadam(learning_rate=0.001)
 model.compile(loss=crit, optimizer=opt, metrics=['accuracy'])
 
 # train model
@@ -156,20 +134,14 @@ train_generator = data_generator(training_size,training_size,batch_size,True)
 val_generator = data_generator(validation_size,validation_size,batch_size,False)
 
 #train model
+# history = model.fit_generator(generator=train_generator, steps_per_epoch = int(training_size // batch_size) - 1,epochs = 150,
+#                    verbose = 1,validation_data = val_generator, validation_steps = int(validation_size // batch_size) - 1,     #Why -1? can someone research this?
+#                    callbacks=[callback_early_stop,tensorboard_callback,callback_model_checkpoint], shuffle=False)
+
 history = model.fit_generator(generator=train_generator, steps_per_epoch = int(training_size // batch_size) - 1,epochs = 150,
                    verbose = 1,validation_data = val_generator, validation_steps = int(validation_size // batch_size) - 1,     #Why -1? can someone research this?
                    callbacks=[callback_early_stop,tensorboard_callback,callback_model_checkpoint], shuffle=False)
 
-
-
-#history = model.fit(x=[img_x_train, data_x_train], y=[y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train],
-#	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
-#	epochs=150, batch_size=8, callbacks=[callback_early_stop,tensorboard_callback], shuffle=True)
-# train model
-
-# history = model.fit(x=[img_x_train, data_x_train], y=[y_roll_train,y_pitch_train,y_yaw_train,y_throttle_train],
-#	validation_data=([img_x_val, data_x_val], [y_roll_val,y_pitch_val,y_yaw_val,y_throttle_val]),
-#	epochs=150, batch_size=8, callbacks=[callback_early_stop], shuffle=True)
 
 # %%
 
@@ -181,16 +153,9 @@ def freeze_layers(model):
             freeze_layers(i)
     return model
 
-<<<<<<< HEAD
 #model_freezed = freeze_layers(model)
 model.save_weights("weights_" + model_name)
 model.save(model_name)
-=======
-
-model_freezed = freeze_layers(model)
-model.save_weights(model_name)
-# model.save(model_name)
->>>>>>> 5f95ef5cd0401afb26abdacb563ea1ebf297e483
 
 print(history.history)
 
