@@ -1,0 +1,1 @@
+tensorboard --logdir /Users/koen/Workspace/autonomous-drone-api/logs --port 6006
