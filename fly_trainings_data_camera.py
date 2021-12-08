@@ -2,21 +2,16 @@ import sys
 sys.path.insert(1, 'modules')
 import drone
 import camera
-import json
 import gps
-import collections
-import cv2
 import time
 import os
-import argparse
 import cv2
-import collections
 import json
-import numpy as np
-import math
-import threading
-import concurrent
- 
+from datetime import datetime
+
+dateTimeObj = datetime.now()
+timestampStr = dateTimeObj.strftime("%d-%b-%Y(%H:%M:%S.%f)")
+
 target = (51.45047075041008, 5.454691543317034) #first run get_gps.py to get target location
 
 record_button_channel = 6
@@ -33,9 +28,8 @@ throttle_threshold = 500
 def setup_writer():
     global data_dir, cam_left_dir, cam_right_dir, cam_depth_dir, control_dir
 
-    dataName = input(
-        "please type name of this run. This will be the name of the Data folder")
-    print("you entered: " + str(dataName))
+    # Flight name is the timestamp of execution
+    dataName = timestampStr
 
     current_directory = os.getcwd()
     data_dir = os.path.join(current_directory, "recordings", dataName)
