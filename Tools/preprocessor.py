@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import preprocessor_functions
 import h5py
+import config as c
 
 batch_size = 32
 preprocessed_data_name_train = "/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/train/"
@@ -14,13 +15,11 @@ preprocessed_data_name_val = "/home/drone/Desktop/Autonomous-Ai-drone-scripts/To
 
 processed_data_name_non_batch = "data.h5"
 
-#data_folder = '/home/drone/Desktop/dataset_POC/Training'
-data_folder = '/home/drone/Desktop/dataset_POC/Testing'
 
 evaluation_data = True #weather the data is for training or for evaluation script 
 positional_embedding = False #weather the data is for training and evaluating postional embedding enabled model which does not need data normalization. Only images
 
-data, images, sample_count= preprocessor_functions.load_folder(data_folder)
+data, images, sample_count= preprocessor_functions.load_folder(c.data_dir)
 
 if positional_embedding:
     if evaluation_data:

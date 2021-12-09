@@ -5,14 +5,10 @@ import numpy as np
 from tensorflow import keras
 from keras.applications import imagenet_utils
 import network
+import config as c
 
-#folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
 folder = '/home/drone/Desktop/dataset_POC/Testing/Run1'
-playback_speed = 0.03 #0.03
 count = 1
-transfer = False
-#model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/inceptionv3_new_preprocessor_sigmoid.h5'
 
 def predict(model, img, json_data):
 
@@ -97,12 +93,12 @@ def drawUI(img, data, predicted):
 model = None
 
 #create model
-if transfer:
+if c.transfer_learning:
     model, base_model = network.create_transfer_model()
-    model.load_weights(model_dir)
+    model.load_weights(c.model_dir)
 
 else:
-    model = keras.models.load_model(model_dir)
+    model = keras.models.load_model(c.model_dir)
 
 while True:
     f = open(folder + "/control/record_" + str(count) + ".json")
@@ -115,5 +111,5 @@ while True:
 
     cv2.imshow("data visualizer", img)
     cv2.waitKey(1)
-    time.sleep(playback_speed)
+    time.sleep(c.playback_speed)
     count +=1

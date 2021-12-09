@@ -3,8 +3,9 @@ import glob
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import config as c
 
-data_folder = "/home/drone/Desktop/dataset_POC/Training"
+data_folder = c.data_dir
 
 def load_folder(data_folder):
 

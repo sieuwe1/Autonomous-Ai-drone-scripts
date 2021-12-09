@@ -3,17 +3,10 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from numpy.core.shape_base import vstack
+import config as c
 
-training_size = 17571 #get these values from preprocessor
-validation_size = 7529 #get these values from preprocessor
-batch_size = 32
-
-train_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/train'
-val_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/val'
-folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
-
-train_file_names = os.listdir(train_folder)
-val_file_names = os.listdir(val_folder)
+train_file_names = os.listdir(c.train_dir)
+val_file_names = os.listdir(c.val_dir)
 
 multi_file = True #set True if multi file dataset needs to be plotted
 training_data = True #set False if validation data needs to be plotted from multi file 
@@ -94,8 +87,8 @@ if multi_file:
     throttle = []
 
     if training_data:
-        for i in range(round(training_size / batch_size)-1):
-            hf = h5py.File(train_folder + "/"  + train_file_names[i], 'r')
+        for i in range(round(c.training_size / c.batch_size)-1):
+            hf = h5py.File(c.train_dir + "/" + train_file_names[i], 'r')
             #img = np.array(hf.get('img_x_train'))
             data.append(np.array(hf.get('data_x_train')))
             roll.append(np.array(hf.get('y_roll_train')))
@@ -104,8 +97,8 @@ if multi_file:
             throttle.append(np.array(hf.get('y_throttle_train')))
             hf.close()
     else:
-        for i in range(round(validation_size / batch_size)-1):
-            hf = h5py.File(val_folder + "/" + val_file_names[i], 'r')
+        for i in range(round(c.validation_size / c.batch_size)-1):
+            hf = h5py.File(c.val_dir + "/" + val_file_names[i], 'r')
             #img = np.array(hf.get('img_x_val'))
             data = np.array(hf.get('data_x_val'))
             roll = np.array(hf.get('y_roll_val'))
@@ -132,7 +125,7 @@ if multi_file:
     #plot_distrubution(data_reshaped, results, 11)
 
 else:
-    hf = h5py.File(folder, 'r')
+    hf = h5py.File(c.data_dir, 'r')
     data = np.array(hf.get('data_x_train'))
     roll = np.array(hf.get('y_roll_train'))
     pitch = np.array(hf.get('y_pitch_train'))

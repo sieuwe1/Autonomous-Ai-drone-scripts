@@ -5,11 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 import network
+import config as c
 
-transfer = False
-model_name = 'inceptionv3_new_preprocessor_sigmoid.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/models_new_preprocessor/inceptionv3_new_preprocessor_sigmoid.h5'
-test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
 #data = np.load(test_dir,allow_pickle=True)
 
 #load train data
@@ -20,7 +17,7 @@ test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
 #y_yaw_test= data[4]
 #y_throttle_test = data[5]
 
-hf = h5py.File(test_dir, 'r')
+hf = h5py.File(c.test_dir, 'r')
 img_x_test = np.array(hf.get('img_x_train'))
 data_x_test = np.array(hf.get('data_x_train'))
 y_roll_test = np.array(hf.get('y_roll_train'))
@@ -32,12 +29,12 @@ hf.close()
 model = None
 
 #create model
-if transfer:
+if c.transfer_learning:
     model, base_model = network.create_transfer_model()
-    model.load_weights(model_dir)
+    model.load_weights(c.model_dir)
 
 else:
-    model = keras.models.load_model(model_dir)
+    model = keras.models.load_model(c.model_dir)
 
 print(model.summary())
 
@@ -81,7 +78,7 @@ print("")
 print("Average throttle error: " + str(throttle_mse))
 
 fig, axs = plt.subplots(2, 2)
-fig.suptitle(model_name, fontsize=16)
+fig.suptitle(c.model_name, fontsize=16)
 fig.patch.set_facecolor('white')
 axs[0, 0].plot(results[:,0])
 axs[0, 0].plot(results[:,1])
@@ -97,7 +94,7 @@ axs[1, 1].plot(results[:,6])
 axs[1, 1].plot(results[:,7])
 axs[1, 1].set_title('throttle')
 
-plt.savefig(model_dir + '_accuracy.png')
+plt.savefig(c.model_dir + '_accuracy.png')
 plt.show()
 
 
