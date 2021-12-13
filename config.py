@@ -1,7 +1,7 @@
 # Data locations
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/donkeycar_new_preprocessor_sigmoid.h5'
-eval_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/eval_data.h5'
-data_dir = "/home/drone/Desktop/dataset_POC/Training"
+model_dir = '/Users/koen/Workspace/Autonomous-Ai-drone-scripts/data/models/trained_best_model_full_set_inception_tranfer_SIGMOID.h5'
+eval_dir = '/Users/koen/Workspace/Autonomous-Ai-drone-scripts/data/eval_data.npy'
+data_dir = "/Users/koen/Workspace/Autonomous-Ai-drone-scripts/dataset_POC/Training"
 
 # Training variables
 training_size = 17571
@@ -11,9 +11,9 @@ batch_size = 32
 # Transfer learning
 transfer_learning = False
 
-train_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/train'
-val_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/val'
-test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
+train_dir = '/Users/koen/Workspace/Autonomous-Ai-drone-scripts/dataset_POC/Training'
+val_dir = '/Users/koen/Workspace/Autonomous-Ai-drone-scripts/dataset_POC/Testing'
+test_dir = '/Users/koen/Workspace/Autonomous-Ai-drone-scripts/data/eval_data.npy'
 
 # Visualizer
 playback_speed = 0.75
