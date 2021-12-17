@@ -2,6 +2,7 @@ import cv2
 import json
 import time 
 import numpy as np
+import collections
 from tensorflow import keras
 from keras.applications import imagenet_utils
 import network
@@ -20,8 +21,17 @@ model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_
 plot_data = []
 fig, ax = plt.subplots()
 
+moving_averages = []
+moving_average_length = 4
+
+for i in range(4):
+    moving_averages.append(collections.deque(maxlen=moving_average_length))
+
 def scale_z_score(data, mean, std):
     return (data - mean) / std
+
+def average(lst):
+    return sum(lst) / len(lst)
 
 def predict(model, img, json_data):
 
@@ -57,7 +67,19 @@ def predict(model, img, json_data):
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
     preds = model.predict(sample_to_predict)
 
-    return preds
+    moving_averages[0].append(preds[0][0]) 
+    moving_averages[1].append(preds[1][0]) 
+    moving_averages[2].append(preds[2][0]) 
+    moving_averages[3].append(preds[3][0]) 
+
+    smooth_predicted_throttle = average(moving_averages[3])
+    smooth_predicted_yaw = average(moving_averages[2])
+    smooth_predicted_pitch = average(moving_averages[1])
+    smooth_predicted_roll = average(moving_averages[0])
+
+
+
+    return (smooth_predicted_roll,smooth_predicted_pitch,smooth_predicted_yaw,smooth_predicted_throttle)
 
 def scale_z_score(data, mean, std):
     return mean + std * data
@@ -150,8 +172,8 @@ def main(i):
     cv2.imshow("data visualizer", img)
     cv2.waitKey(1)
     #time.sleep(playback_speed)
-    print(predicted[0][0])
-    plot(predicted[0][0])
+    print(predicted[0])
+    plot(predicted[0])
     count +=1
 
 ani = FuncAnimation(fig, main, interval=playback_speed)

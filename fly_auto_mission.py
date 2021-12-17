@@ -89,7 +89,6 @@ def init():
     drone.connect_drone('/dev/ttyACM0')
     drone.arm_and_takeoff(4)
     #drone.connect_drone('127.0.0.1:14551')
-
     return "flight"
 
 
