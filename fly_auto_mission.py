@@ -24,6 +24,12 @@ front_camera = None
 model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 model = None
 
+moving_averages = []
+moving_average_length = 4
+
+for i in range(4):
+    moving_averages.append(collections.deque(maxlen=moving_average_length))
+
 def scale_z_score(data, mean, std):
     return (data - mean) / std
 
@@ -60,12 +66,22 @@ def predict(img, data):
     print("input data: ", data)
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
     preds = model.predict(sample_to_predict)
+    
+    moving_averages[0].append(preds[0][0]) 
+    moving_averages[1].append(preds[1][0]) 
+    moving_averages[2].append(preds[2][0]) 
+    moving_averages[3].append(preds[3][0]) 
+
+    smooth_predicted_throttle = average(moving_averages[3])
+    smooth_predicted_yaw = average(moving_averages[2])
+    smooth_predicted_pitch = average(moving_averages[1])
+    smooth_predicted_roll = average(moving_averages[0])
 
     #scale predicted (0 to 1) to actual scale (1000 to 2000)
-    predicted_throttle = map(predicted[3], 0, 1, 1000, 2000)
-    predicted_yaw = map(predicted[2], 0, 1, 1000, 2000)
-    predicted_pitch = map(predicted[1], 0, 1, 1000, 2000)
-    predicted_roll = map(predicted[0], 0, 1, 1000, 2000)
+    predicted_throttle = map(smooth_predicted_throttle, 0, 1, 1000, 2000)
+    predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
+    predicted_pitch = map(smooth_predicted_pitch, 0, 1, 1000, 2000)
+    predicted_roll = map(smooth_predicted_roll, 0, 1, 1000, 2000)
 
     print("predicted throttle: ", predicted_throttle)
     print("predicted yaw: ", predicted_yaw)
