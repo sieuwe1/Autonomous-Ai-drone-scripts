@@ -101,7 +101,7 @@ def flight():
         current_cordinate = drone.get_location()
         current_location = (current_cordinate.lat,current_cordinate.lon)
 
-        if gps.calculate_target_reached(current_location, target_location, target_reached_bubble) #check if target is reached 
+        if gps.calculate_target_reached(current_location, target_location, target_reached_bubble): #check if target is reached 
             break
         
         else:
@@ -120,14 +120,14 @@ def flight():
             predicted = predict(img,data)
             predicted_throttle = predicted[0]
             predicted_yaw = predicted[1]
-            predicted_pitch predicted[2]
+            predicted_pitch = predicted[2]
             predicted_roll = predicted[3]
 
             #write to drone 
-            set_channel('1', predicted_roll):
-            set_channel('2', predicted_pitch):
-            set_channel('3', predicted_throttle):
-            set_channel('4', predicted_yaw):
+            set_channel('1', predicted_roll)
+            set_channel('2', predicted_pitch)
+            set_channel('3', predicted_throttle)
+            set_channel('4', predicted_yaw)
 
     return "goal_reached"
 
