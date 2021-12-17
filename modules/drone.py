@@ -70,6 +70,15 @@ def set_groundspeed(speed):
     print("groundspeed set to: " % speed)
     vehicle.groundspeed = speed
 
+def set_flight_mode(f_mode):
+    global vehicle
+    vehicle.mode = VehicleMode(f_mode)
+
+def set_channel(channel, value):
+    global vehicle
+    vehicle.channels.overrides[channel] = value
+            
+
 def arm():
     vehicle.groundspeed = 3
 

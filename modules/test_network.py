@@ -5,19 +5,41 @@ import numpy as np
 from tensorflow import keras
 from keras.applications import imagenet_utils
 import network
+from adabelief_tf import AdaBeliefOptimizer
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 #folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
-folder = '/home/drone/Desktop/dataset_POC/Testing/Run1'
+folder = '/home/drone/Desktop/dataset_POC/Testing/RunOcciTest'
 playback_speed = 0.03 #0.03
 count = 1
 transfer = False
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/inceptionv3_new_preprocessor_sigmoid.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+
+plot_data = []
+fig, ax = plt.subplots()
+
+def scale_z_score(data, mean, std):
+    return (data - mean) / std
 
 def predict(model, img, json_data):
 
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
     normalizedImg = imagenet_utils.preprocess_input(img, data_format=None, mode='tf') #inception uses 'tf' mode
+
+    #used for z score input
+    #speed = scale_z_score(json_data['gps/speed'], 0, 1)
+    #target_distance = scale_z_score(json_data['gps/target_distance'], 0, 1.0)
+    #path_distance = scale_z_score(json_data['gps/path_distance'], 0, 1.0)
+    #heading_delta = scale_z_score(json_data['gps/heading_delta'], 0, 1.0)
+    #altitude = scale_z_score(json_data['gps/altitude'], 0, 1.254)
+    #vel_x = scale_z_score(json_data['gps/vel_x'], 0.081, 1.195)
+    #vel_y = scale_z_score(json_data['gps/vel_y'], -0.415, 1.307)
+    #vel_z = scale_z_score(json_data['gps/vel_z'], -0.022, 0.332)
+
+
+    #used for linear input
 
     #sample.append(json_data['gps/latitude'])
     #sample.append(json_data['gps/longtitude'])
@@ -31,10 +53,14 @@ def predict(model, img, json_data):
     vel_z = map_decimal(json_data['imu/vel_z'], -1.17, 1.07, 0,1)
     
     data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+    print("data: ", data)
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
     preds = model.predict(sample_to_predict)
 
     return preds
+
+def scale_z_score(data, mean, std):
+    return mean + std * data
 
 def map_decimal(value, leftMin, leftMax, rightMin, rightMax):
     leftSpan = leftMax - leftMin
@@ -102,18 +128,32 @@ if transfer:
     model.load_weights(model_dir)
 
 else:
-    model = keras.models.load_model(model_dir)
+    custom_objects = {"AdaBeliefOptimizer": AdaBeliefOptimizer}
+    with keras.utils.custom_object_scope(custom_objects):
+        model = keras.models.load_model(model_dir)
 
-while True:
+def plot(data):
+    plot_data.append(data)
+    ax.cla()
+    ax.plot(plot_data)
+
+def main(i):
+    global count
     f = open(folder + "/control/record_" + str(count) + ".json")
     data = json.load(f)
     img = cv2.imread(folder + "/left_camera/" + data['cam/image_name'])
-    
+
     predicted = predict(model,img,data)
 
     img = drawUI(img, data, predicted)
 
     cv2.imshow("data visualizer", img)
     cv2.waitKey(1)
-    time.sleep(playback_speed)
+    #time.sleep(playback_speed)
+    print(predicted[0][0])
+    plot(predicted[0][0])
     count +=1
+
+ani = FuncAnimation(fig, main, interval=playback_speed)
+
+plt.show()

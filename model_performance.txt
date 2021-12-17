@@ -54,3 +54,22 @@ Average pitch error: 0.05526322
 Average yaw error: 0.014684197
 Average throttle error: 0.033870857
 
+---------------------------------------------------
+
+donkeycar model met z score dataset, occi runs en shuffle
+
+Average error: 0.03235334306784819   sample count: 2277
+Average roll error: 0.036606740431174664
+Average pitch error: 0.039045030711384925
+Average yaw error: 0.023171234373708768
+Average throttle error: 0.030590366755124408
+
+---------------------------------------------------
+
+inception model met z score dataset, occi runs en shuffle
+
+Average error: 0.032299742331395244   sample count: 2277
+Average roll error: 0.03218577372087776
+Average pitch error: 0.04228527377448631
+Average yaw error: 0.022966891773283187
+Average throttle error: 0.03176103005693372

@@ -5,11 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 import network
+from adabelief_tf import AdaBeliefOptimizer
+from sklearn.metrics import mean_squared_error
 
 transfer = False
-model_name = 'inceptionv3_new_preprocessor_sigmoid.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/models_new_preprocessor/inceptionv3_new_preprocessor_sigmoid.h5'
-test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
+model_name = 'Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/eval_data.h5'
 #data = np.load(test_dir,allow_pickle=True)
 
 #load train data
@@ -37,7 +39,9 @@ if transfer:
     model.load_weights(model_dir)
 
 else:
-    model = keras.models.load_model(model_dir)
+    custom_objects = {"AdaBeliefOptimizer": AdaBeliefOptimizer}
+    with keras.utils.custom_object_scope(custom_objects):
+        model = keras.models.load_model(model_dir)
 
 print(model.summary())
 
@@ -55,16 +59,16 @@ for i in range(len(img_x_test)):
     yaw_error = abs(y_yaw_test[i] - preds[2][0])
     throttle_error = abs(y_throttle_test[i] - preds[3][0])
 
+    print((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], i))
+
     results.append((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], i))
 #%%
-mse = keras.losses.MeanSquaredError()
-
 results = np.array(results)
 
-roll_mse = mse(results[:,0],results[:,1]).numpy()
-pitch_mse = mse(results[:,2],results[:,3]).numpy()
-yaw_mse = mse(results[:,4],results[:,5]).numpy()
-throttle_mse = mse(results[:,6],results[:,7]).numpy()
+roll_mse = mean_squared_error(results[:,0],results[:,1])
+pitch_mse = mean_squared_error(results[:,2],results[:,3])
+yaw_mse = mean_squared_error(results[:,4],results[:,5])
+throttle_mse = mean_squared_error(results[:,6],results[:,7])
 
 average_mse = (roll_mse+pitch_mse+yaw_mse+throttle_mse) / 4
 
@@ -85,16 +89,20 @@ fig.suptitle(model_name, fontsize=16)
 fig.patch.set_facecolor('white')
 axs[0, 0].plot(results[:,0])
 axs[0, 0].plot(results[:,1])
-axs[0, 0].legend(['actual', 'predicted'], loc='upper left')
+#axs[0, 0].plot(np.abs(results[:,0] - results[:,1]))
+axs[0, 0].legend(['actual', 'predicted', 'error'], loc='upper left')
 axs[0, 0].set_title('Roll')
 axs[0, 1].plot(results[:,2])
 axs[0, 1].plot(results[:,3])
+#axs[0, 1].plot(np.abs(results[:,2] - results[:,3]))
 axs[0, 1].set_title('Pitch')
 axs[1, 0].plot(results[:,4])
 axs[1, 0].plot(results[:,5])
+#axs[1, 0].plot(np.abs(results[:,4] - results[:,5]))
 axs[1, 0].set_title('yaw')
 axs[1, 1].plot(results[:,6])
 axs[1, 1].plot(results[:,7])
+#axs[1, 1].plot(np.abs(results[:,6] - results[:,7]))
 axs[1, 1].set_title('throttle')
 
 plt.savefig(model_dir + '_accuracy.png')

@@ -86,6 +86,12 @@ def calculate_target(start,heading):
     return (x,y)
 
 
+def calculate_target_reached(current, target, bubble):
+    if(math.sqrt(current[0] - target[0]) + math.sqrt(current[1] - target[1]) < math.sqrt(bubble)):
+        return True
+    else:
+        return False
+
 def calculate_initial_compass_bearing(pointA, pointB):
     """
     Calculates the bearing between two points.
@@ -124,9 +130,9 @@ def calculate_initial_compass_bearing(pointA, pointB):
 
     return compass_bearing
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     #target = calculate_target((51.45068,5.45525),45)
     #calculate_path_distance(target,(51.45068,5.45525),(51.4509297236778, 5.455395981176845))
     #calculate_path_distance((5,10),(20,40),(10,35))
                                         #heading, target, current 
-    print(calculate_heading_difference(270,(51.45152420417108, 5.4547439964670446), (51.45224546110723, 5.454700931022534)))
+    #print(calculate_heading_difference(270,(51.45152420417108, 5.4547439964670446), (51.45224546110723, 5.454700931022534)))

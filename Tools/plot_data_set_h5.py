@@ -4,22 +4,23 @@ import os
 import matplotlib.pyplot as plt
 from numpy.core.shape_base import vstack
 
-training_size = 17571 #get these values from preprocessor
-validation_size = 7529 #get these values from preprocessor
+training_size = 17928 #get these values from preprocessor
+validation_size = 7682 #get these values from preprocessor
 batch_size = 32
 
-train_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/train'
-val_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/val'
-folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/eval_data.h5'
+
+train_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffled_z_score_in_linear_out/train'
+val_folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffled_z_score_in_linear_out/val'
+folder = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffled_z_score_in_linear_out/eval_data.h5'
 
 train_file_names = os.listdir(train_folder)
 val_file_names = os.listdir(val_folder)
 
-multi_file = True #set True if multi file dataset needs to be plotted
-training_data = True #set False if validation data needs to be plotted from multi file 
+multi_file = False #set True if multi file dataset needs to be plotted
+training_data = False #set False if validation data needs to be plotted from multi file 
 
-value_to_plot =  1   # -1 
-value_to_plot2 = 3 
+value_to_plot =  4   # -1 
+value_to_plot2 = -1 
 value_to_plot3 = -1
 
 # 0 'speed'             
@@ -43,7 +44,7 @@ def plot_in_time(data, results, key, key2, key3):
 
     if key != -1:
         if key > 7:
-            plt.plot(results[key-8,:])
+            plt.plot(results[:,key-8])
         else:
             plt.plot(data[:,key])
 
@@ -69,7 +70,7 @@ def plot_in_time(data, results, key, key2, key3):
 def plot_distrubution(data, results, key, bins_count=60): 
     if key != -1:
         if key > 7:
-            plt.hist(results[key-8,:], density=True, bins=bins_count)
+            plt.hist(results[:,key-8], density=True, bins=bins_count)
         else:
             plt.hist(data[:,key], density=True, bins=bins_count) 
 
@@ -107,11 +108,11 @@ if multi_file:
         for i in range(round(validation_size / batch_size)-1):
             hf = h5py.File(val_folder + "/" + val_file_names[i], 'r')
             #img = np.array(hf.get('img_x_val'))
-            data = np.array(hf.get('data_x_val'))
-            roll = np.array(hf.get('y_roll_val'))
-            pitch = np.array(hf.get('y_pitch_val'))
-            yaw = np.array(hf.get('y_yaw_val'))
-            throttle = np.array(hf.get('y_throttle_val'))
+            data.append(np.array(hf.get('data_x_val')))
+            roll.append(np.array(hf.get('y_roll_val')))
+            pitch.append(np.array(hf.get('y_pitch_val')))
+            yaw.append(np.array(hf.get('y_yaw_val')))
+            throttle.append(np.array(hf.get('y_throttle_val')))
             hf.close()
 
     #reshape into usable format
@@ -121,15 +122,23 @@ if multi_file:
     yaw_reshaped = np.array(reshape(yaw))
     throttle_reshaped = np.array(reshape(throttle))
 
-    results = vstack((roll_reshaped, pitch_reshaped, yaw_reshaped, throttle_reshaped))
+    print("fakka")
+    print(roll_reshaped.shape)
+    print(pitch_reshaped.shape)
+    print(yaw_reshaped.shape)
+    print(throttle_reshaped.shape)
 
-    plot_in_time(data_reshaped, results,value_to_plot, value_to_plot2, value_to_plot3)
+
+    results = np.hstack((roll_reshaped, pitch_reshaped, yaw_reshaped, throttle_reshaped))
+
+    #plot_in_time(data_reshaped, results,value_to_plot, value_to_plot2, value_to_plot3)
     
-    #plot_distrubution(data_reshaped, results, value_to_plot)
-    #plot_distrubution(data_reshaped, results, 8)
-    #plot_distrubution(data_reshaped, results, 9)
-    #plot_distrubution(data_reshaped, results, 10)
-    #plot_distrubution(data_reshaped, results, 11)
+    #print(results.shape)
+    plot_distrubution(data_reshaped, results, 8)
+    plot_distrubution(data_reshaped, results, 9)
+    plot_distrubution(data_reshaped, results, 10)
+    plot_distrubution(data_reshaped, results, 11)
+
 
 else:
     hf = h5py.File(folder, 'r')
@@ -140,7 +149,14 @@ else:
     throttle = np.array(hf.get('y_throttle_train'))
     hf.close()
 
-    results = np.vstack((roll, pitch, yaw, throttle))
 
-    #plot_in_time(data, results,value_to_plot, value_to_plot2, value_to_plot3)
-    plot_distrubution(data, results, value_to_plot)
+    results = np.hstack((roll, pitch, yaw, throttle))
+
+    print(results.shape)
+
+    plot_in_time(data, results,value_to_plot, value_to_plot2, value_to_plot3)
+    #plot_distrubution(data, results, value_to_plot)    
+    #plot_distrubution(data, results, 0)
+    #plot_distrubution(data, results, 1)
+    #plot_distrubution(data, results, 2)
+    #plot_distrubution(data, results, 3)

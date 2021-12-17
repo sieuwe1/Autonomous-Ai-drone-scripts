@@ -18,6 +18,7 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
     valueScaled = float(value - leftMin) / float(leftSpan)
     return round(rightMin + (valueScaled * rightSpan))
 
+
 def drawUI(img, data):
     cv2.putText(img, "TargetDistance: " + str(data['gps/target_distance']), (50,50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA)     
     cv2.putText(img, "PathDistance: " + str(data['gps/path_distance']), (50,100), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
@@ -60,7 +61,7 @@ def main(i):
     cv2.imshow("data visualizer", img)
     cv2.waitKey(1)
     #time.sleep(playback_speed)
-    plot(data['gps/path_distance'])
+    plot(data['gps/target_distance'])
     count +=1
 
 ani = FuncAnimation(fig, main, interval=playback_speed)

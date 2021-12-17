@@ -10,6 +10,7 @@ from tensorflow import keras
 from tensorflow.keras import models
 from tensorflow.keras import layers
 from tensorflow.keras.applications import InceptionV3, VGG16
+from keras_pos_embd import PositionEmbedding
 
 #from positional_encodings import PositionalEncodingPermute1D 
 
@@ -50,7 +51,7 @@ class TransformerBlock(layers.Layer):
         return self.layernorm2(out1 + ffn_output)
 
 class TokenAndPositionEmbedding(layers.Layer):
-    def __init__(self, maxlen, vocab_size, embed_dim):
+    def __init__(self, maxlen, embed_dim):
         super(TokenAndPositionEmbedding, self).__init__()
         self.pos_emb = layers.Embedding(input_dim=maxlen, output_dim=embed_dim, input_length=10)
 
@@ -60,33 +61,33 @@ class TokenAndPositionEmbedding(layers.Layer):
         positions = self.pos_emb(positions)
         return positions
 
-def sinusoidal_embedding(x: np.array, dim=256):
-    position_enc = np.array([[_x / np.power(10000, 2*i/dim) for i in range(dim)] for _x in x])
-    position_enc[1:, 0::2] = np.sin(position_enc[1:, 0::2]) # dim 2i
-    position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])
-    return position_enc
-
-def create_transformer_model():
+def create_transformer_model(latent_dim=256):
     
     base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
     image_input = layers.Input(shape=(300, 300, 3), name='image')
 
     x = base_model(image_input)
-    x = layers.Dense(256, activation='relu')(x)
-    x = keras.layers.Reshape((1,256), input_shape=(256,))(x)
+    x = layers.Dense(latent_dim, activation='relu')(x)
+    x = keras.layers.Reshape((1,latent_dim), input_shape=(latent_dim,))(x)
 
     #targetdistance, pathdistance, headingdelta, speed, altitude, x, y, z
     # Input(shape(8, 256)) # 1500 -> [0.5, 0.1, 0.3, 0.1 0.6] # 0.5 -> [0.1, 0.1]
     maxlen = 8
-    metadata = layers.Input(shape=(maxlen,), name="path_distance_in")
+    metadata = layers.Input(shape=(maxlen,latent_dim), name="path_distance_in")
 
-    y = layers.Embedding(input_dim=maxlen, output_dim=256)(metadata)
-    z = layers.Concatenate(axis=1)([y,x])
+    z = layers.Concatenate(axis=1)([metadata,x])
 
-    #emb_td = TokenAndPositionEmbedding(maxlen or 9, 180, 256)
-    #z += emb_td(metadata[0]) 
+    pos_emb = PositionEmbedding(
+        input_shape=(None,),
+        input_dim=10,     # The maximum absolute value of positions.
+        output_dim=latent_dim,     # The dimension of embeddings.
+        mask_zero=10000,  # The index that presents padding (because `0` will be used in relative positioning).
+        mode=PositionEmbedding.MODE_ADD,
+    )
+    #emb_td = TokenAndPositionEmbedding(maxlen+1, 256)
+    z = pos_emb(z) 
 
-    z = TransformerBlock(256, 2, 32)(z)
+    z = TransformerBlock(latent_dim, 2, 32)(z)
     
     #y = layers.Embedding(input_dim=2000, output_dim=256, input_length=8)
     z = layers.Dense(128, activation='relu')(z[:,0])
@@ -210,8 +211,8 @@ def create_model():
 
     y = metadata
     y = layers.Dense(14, activation='relu')(y)
-    y = layers.Dense(14, activation='relu')(y)
-    y = layers.Dense(14, activation='relu')(y)
+    y = layers.Dense(28, activation='relu')(y)
+    y = layers.Dense(56, activation='relu')(y)
 
     z = layers.concatenate([x, y])
     z = layers.Dense(50, activation='relu')(z)
@@ -231,7 +232,7 @@ def create_model():
 
 
 #model = create_model()]
-model, base_model= create_transfer_model()
+#model, base_model= create_transfer_model()
 
 #print(base_model.summary())
 
