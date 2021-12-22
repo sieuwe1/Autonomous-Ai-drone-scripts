@@ -1,3 +1,4 @@
+#plot PID data drom person follow script
 import matplotlib.pyplot as plt
 
 file1 = open('/home/sieuwe/Desktop/Autonomous-Attack-Drone-Ai-GPS-OLD/debug/ok2_velocity.txt', 'r')
