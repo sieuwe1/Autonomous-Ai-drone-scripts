@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 #folder = "/home/drone/Desktop/dataset_POC/Training/Run6" #input("Please type root direction of data folder: ")
-folder = '/home/drone/Desktop/dataset_POC/Testing/RunOcciTest'
+folder = '/home/drone/Desktop/recordings/RunOcciTest'
 playback_speed = 0.03 #0.03
 count = 1
 transfer = False
 #model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/trained_best_model_full_set.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/model/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 
 plot_data = []
 fig, ax = plt.subplots()
@@ -167,12 +167,12 @@ def main(i):
 
     predicted = predict(model,img,data)
 
-    img = drawUI(img, data, predicted)
+    #img = drawUI(img, data, predicted)
 
-    cv2.imshow("data visualizer", img)
-    cv2.waitKey(1)
+    #cv2.imshow("data visualizer", img)
+    #cv2.waitKey(1)
     #time.sleep(playback_speed)
-    print(predicted[0])
+    print(predicted)
     plot(predicted[0])
     count +=1
 

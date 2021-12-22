@@ -85,13 +85,6 @@ def calculate_target(start,heading):
 
     return (x,y)
 
-
-def calculate_target_reached(current, target, bubble):
-    if(math.sqrt(current[0] - target[0]) + math.sqrt(current[1] - target[1]) < math.sqrt(bubble)):
-        return True
-    else:
-        return False
-
 def calculate_initial_compass_bearing(pointA, pointB):
     """
     Calculates the bearing between two points.
