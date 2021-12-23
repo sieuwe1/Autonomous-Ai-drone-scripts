@@ -1,6 +1,6 @@
 # Fly fully autonomous from starting point to target! Dont worry about obstacles our AI should avoid them!
 import sys
-sys.path.insert(1, 'modules')
+sys.path.insert(1, '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules')
 import drone
 import camera
 import gps
@@ -18,10 +18,12 @@ from matplotlib.animation import FuncAnimation
 import onnxruntime as rt
 
 #-------config----------
-target_location = (51.45047075041008, 5.454691543317034) 
+target_location = (51.4504757, 5.4546918) 
 target_reached_bubble = 5 #when vehicle is within 5m range from target it has reached the target
 model_dir ="/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/Donkeycar.onnx"
-moving_average_length = 4
+data_log = "data_log.txt"
+preds_log = "predictions_log.txt"
+moving_average_length = 7
 #-----------------------
 
 STATE = "init"
@@ -76,13 +78,19 @@ def predict(img, data):
     
     #predict
     data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+
+    with open(data_log, 'a') as f:
+        f.write(str(data))
+    f.close()
+
     #print("input data: ", data)
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
     
     preds = sess.run(None, {inputs[0].name: sample_to_predict[0].astype(np.float32), inputs[1].name: sample_to_predict[1].astype(np.float32)})
 
-   #outputs = ort_session.run(None, {"input_1": np.random.randn(10, 3, 224, 224).astype(np.float32)"input_2": np.random.randn(10, 3, 100).astype(np.float32)})
-
+    with open(preds_log, 'a') as f:
+        f.write(str(preds))
+    f.close()
 
     #print(preds)
     
@@ -114,6 +122,7 @@ def init():
 
     print("State = INIT -> " + STATE)
 
+    time.sleep(20)
     # create onnx session
     sess = rt.InferenceSession(model_dir)
     inputs = sess.get_inputs()
@@ -123,12 +132,14 @@ def init():
 
     print("FLYING NOW")
     drone.connect_drone('/dev/ttyACM0')
-    #!!!!!!!!!!!!!drone.arm_and_takeoff(4)
+    drone.arm_and_takeoff(4)
     #drone.connect_drone('127.0.0.1:14551')
     return "flight"
 
 
 def flight():
+
+    !!!!!! eerst knop toevoegen die het script stopt!!!! slaat nu op hol!!!!!!!!!!!!!
     print("State = FLIGHT -> " + STATE)
 
     start_cordinate = drone.get_location()
