@@ -1,49 +1,49 @@
 #plot data from auto mission
 from matplotlib import lines
 import matplotlib.pyplot as plt
+import collections
 
-file1 = open('/home/drone/Desktop/Autonomous-Ai-drone-scripts/predictions_log.txt', 'r')
+file1 = open('/home/sieuwe/drone/Autonomous-Ai-drone-scripts/predictions_log.txt', 'r')
 Lines = file1.readlines()
 
-sections = Lines[0].split(',') 
+moving_averages = []
 
-filtered = [x for x in sections if "dtype" not in x]
+for i in range(4):
+    moving_averages.append(collections.deque(maxlen=8))
 
-data_raw = []
-for i in range(4,len(filtered)-3,4):
-    data_raw.append(str(filtered[i-4]) + "," + str(filtered[i-3]) + "," + str(filtered[i-2]) + "," + str(filtered[i-1]))
+def average(lst):
+    return sum(lst) / len(lst)
 
+def get_num(data):
+    num = ""
+    for c in data:
+        if c == '.' or c.isdigit():
+            num = num + c
+    return float(num)
 
-print()
-print(data_raw[0])
-print(data_raw[1])
-print(data_raw[2])
-print(data_raw[3])
-print(data_raw[4])
-print(data_raw[5])
-print(data_raw[6])
-print(data_raw[7])
-
-
+sections = Lines[0].split('dtype') 
+filtered = [x.replace('float32', '') for x in sections]
 data = []
-#for i in range(len(data_raw)):
-    #print(data_raw)
-    #print(data_raw[i][0].split('[')[3].split(']')[0])
-    #print(data_raw[i][1].split('[')[2].split(']')[0])
-    #print(data_raw[i][2].split('[')[2].split(']')[0])
-    #print(data_raw[i][3].split('[')[2].split(']')[0])
-    
+for i in range(4,len(filtered)-3,4):
 
-    #data.append(data_raw[i][0].split('[')[3].split(']')[0], data_raw[i][1].split('[')[3].split(']')[0], 
-    #data_raw[i][2].split('[')[3].split(']')[0], data_raw[i][3].split('[')[3].split(']')[0])
-       
-#print(data)
-#for line in Lines:
-    #print(line)
-    #sections = line.split(',') 
-    #print(sections)
+    roll = get_num(filtered[i-4])
+    pitch = get_num(filtered[i-3])
+    yaw = get_num(filtered[i-2])
+    throttle = get_num(filtered[i-1])
 
+    data.append((roll, pitch, yaw, throttle))
 
-#plt.plot(data)
-#plt.ylabel('some numbers')
-#plt.show()
+data2 = []
+
+for d in data:
+    moving_averages[0].append(d[0]) 
+    moving_averages[1].append(d[1]) 
+    moving_averages[2].append(d[2])
+    moving_averages[3].append(d[3]) 
+
+    data2.append((average(moving_averages[0]), average(moving_averages[1]), average(moving_averages[2]), average(moving_averages[3])))
+
+plt.plot(data2)
+plt.ylabel('some numbers')
+plt.legend(['roll', 'pitch', 'yaw', 'throttle'])
+plt.show()
