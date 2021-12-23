@@ -99,23 +99,23 @@ def predict(img, data):
     moving_averages[2].append(preds[2][0])
     moving_averages[3].append(preds[3][0]) 
 
-    smooth_predicted_throttle = average(moving_averages[3])
-    smooth_predicted_yaw = average(moving_averages[2])
-    smooth_predicted_pitch = average(moving_averages[1])
     smooth_predicted_roll = average(moving_averages[0])
+    smooth_predicted_pitch = average(moving_averages[1])
+    smooth_predicted_yaw = average(moving_averages[2])
+    smooth_predicted_throttle = average(moving_averages[3])
 
     #scale predicted (0 to 1) to actual scale (1000 to 2000)
-    predicted_throttle = map(smooth_predicted_throttle, 0, 1, 1000, 2000)
-    predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
-    predicted_pitch = map(smooth_predicted_pitch, 0, 1, 1000, 2000)
     predicted_roll = map(smooth_predicted_roll, 0, 1, 1000, 2000)
+    predicted_pitch = map(smooth_predicted_pitch, 0, 1, 1000, 2000)
+    predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
+    predicted_throttle = map(smooth_predicted_throttle, 0, 1, 1000, 2000)
 
     print("predicted throttle: ", predicted_throttle)
     print("predicted yaw: ", predicted_yaw)
     print("predicted pitch: ", predicted_pitch)
     print("predicted roll: ", predicted_roll)
 
-    return (predicted_throttle, predicted_yaw, predicted_pitch, predicted_roll)
+    return (predicted_roll, predicted_pitch, predicted_yaw, predicted_throttle)
 
 def init():
     global sess, inputs 
@@ -171,10 +171,10 @@ def flight():
 
             #predict
             predicted = predict(img,data)
-            predicted_throttle = predicted[0]
-            predicted_yaw = predicted[1]
-            predicted_pitch = predicted[2]
-            predicted_roll = predicted[3]
+            predicted_roll = predicted[0]
+            predicted_pitch = predicted[1]
+            predicted_yaw = predicted[2]
+            predicted_throttle = predicted[3]
 
             #write to drone 
             drone.set_channel('1', predicted_roll)
