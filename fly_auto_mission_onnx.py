@@ -16,20 +16,25 @@ from adabelief_tf import AdaBeliefOptimizer
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import onnxruntime as rt
-
+import os
 #-------config----------
 target_location = (51.4504757, 5.4546918) 
 target_reached_bubble = 5 #when vehicle is within 5m range from target it has reached the target
 model_dir ="/home/drone/Desktop/Autonomous-Ai-drone-scripts/Tools/Donkeycar.onnx"
 data_log = "data_log.txt"
 preds_log = "predictions_log.txt"
+mapped_preds_log = "mapped_predictions_log.txt"
+camera_log_dir = "/home/drone/Desktop/Autonomous-Ai-drone-scripts/camera_log"
 moving_average_length = 7
+record_button_channel = 6
+debug = True
 #-----------------------
 
 STATE = "init"
 sess = None
 inputs = None
 moving_averages = []
+frame_count = 0
 
 for i in range(4):
     moving_averages.append(collections.deque(maxlen=moving_average_length))
@@ -59,8 +64,19 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
 def average(lst):
     return sum(lst) / len(lst)
 
+def write_image(img):
+    global frame_count
+    cam_name = str(frame_count) + '_cam-image.jpg'
+    cam_path = os.path.join(camera_log_dir, cam_name)
+    cv2.imwrite(cam_path, img)
+    frame_count += 1
+
+
 def predict(img, data):
     global sess, inputs 
+    
+    if debug:
+        write_image(img)
 
     # scale image from (0 to 255) to (0 to 1)
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
@@ -77,27 +93,31 @@ def predict(img, data):
     vel_z = map_decimal(data[7], -1.17, 1.07, 0,1)
     
     #predict
-    data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+    #data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
 
-    with open(data_log, 'a') as f:
-        f.write(str(data))
-    f.close()
-
+    data = np.array([0.4,0.5,0.1,0.1,0.5,0.1,0.0,0.0])
+    
+    if debug:
+        with open(data_log, 'a') as f:
+            message = str(data[0]) + "," + str(data[1]) + "," + str(data[2]) + "," + str(data[3]) + "," + str(data[4]) + "," + str(data[5]) + "," + str(data[6]) + "," + str(data[7]) +"\n"
+            f.write(message)
+        f.close()
+    
     #print("input data: ", data)
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
     
     preds = sess.run(None, {inputs[0].name: sample_to_predict[0].astype(np.float32), inputs[1].name: sample_to_predict[1].astype(np.float32)})
 
-    with open(preds_log, 'a') as f:
-        f.write(str(preds))
-    f.close()
+    if debug:
+        with open(preds_log, 'a') as f:
+            message = str(preds[0][0][0]) + "," + str(preds[1][0][0]) + "," + str(preds[2][0][0]) + "," + str(preds[3][0][0]) +"\n"
+            f.write(message)
+        f.close()
 
-    #print(preds)
-    
-    moving_averages[0].append(preds[0][0]) 
-    moving_averages[1].append(preds[1][0]) 
-    moving_averages[2].append(preds[2][0])
-    moving_averages[3].append(preds[3][0]) 
+    moving_averages[0].append(preds[0][0][0]) 
+    moving_averages[1].append(preds[1][0][0]) 
+    moving_averages[2].append(preds[2][0][0])
+    moving_averages[3].append(preds[3][0][0]) 
 
     smooth_predicted_roll = average(moving_averages[0])
     smooth_predicted_pitch = average(moving_averages[1])
@@ -109,6 +129,12 @@ def predict(img, data):
     predicted_pitch = map(smooth_predicted_pitch, 0, 1, 1000, 2000)
     predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
     predicted_throttle = map(smooth_predicted_throttle, 0, 1, 1000, 2000)
+
+    if debug:
+        with open(mapped_preds_log, 'a') as f:
+            message = str(predicted_roll) + "," + str(predicted_pitch) + "," + str(predicted_yaw) + "," + str(predicted_throttle) +"\n"
+            f.write(message)
+        f.close()
 
     print("predicted throttle: ", predicted_throttle)
     print("predicted yaw: ", predicted_yaw)
@@ -122,7 +148,7 @@ def init():
 
     print("State = INIT -> " + STATE)
 
-    time.sleep(20)
+    #time.sleep(20)
     # create onnx session
     sess = rt.InferenceSession(model_dir)
     inputs = sess.get_inputs()
@@ -132,14 +158,13 @@ def init():
 
     print("FLYING NOW")
     drone.connect_drone('/dev/ttyACM0')
-    drone.arm_and_takeoff(4)
+    #drone.arm_and_takeoff(4)
     #drone.connect_drone('127.0.0.1:14551')
     return "flight"
 
 
 def flight():
 
-    !!!!!! eerst knop toevoegen die het script stopt!!!! slaat nu op hol!!!!!!!!!!!!!
     print("State = FLIGHT -> " + STATE)
 
     start_cordinate = drone.get_location()
@@ -149,41 +174,48 @@ def flight():
     print("target location: " + str(target_location))
 
     while True:
-        start_time = time.time()
-        current_cordinate = drone.get_location()
-        current_location = (current_cordinate.lat,current_cordinate.lon)
+        print(drone.read_channel(record_button_channel))
+        if drone.read_channel(record_button_channel) < 1500:
 
-        target_distance, path_distance = gps.calculate_path_distance(target_location, start, current_location)
+            start_time = time.time()
+            current_cordinate = drone.get_location()
+            current_location = (current_cordinate.lat,current_cordinate.lon)
 
-        if target_distance < target_reached_bubble: #check if target is reached 
-            break
-        
-        else:
-            #get data
-            current_heading = drone.get_heading()
-            img = camera.get_video(0)
+            target_distance, path_distance = gps.calculate_path_distance(target_location, start, current_location)
 
-            heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
-            vel_x, vel_y, vel_z = drone.get_velocity()
-            altitude = drone.get_altitude()
-            speed = drone.get_ground_speed()
-            data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+            if target_distance < target_reached_bubble: #check if target is reached 
+                break
+            
+            else:
+                #get data
+                current_heading = drone.get_heading()
+                img = camera.get_video(0)
 
-            #predict
-            predicted = predict(img,data)
-            predicted_roll = predicted[0]
-            predicted_pitch = predicted[1]
-            predicted_yaw = predicted[2]
-            predicted_throttle = predicted[3]
+                heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
+                vel_x, vel_y, vel_z = drone.get_velocity()
+                altitude = drone.get_altitude()
+                speed = drone.get_ground_speed()
+                data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
 
-            #write to drone 
-            drone.set_channel('1', predicted_roll)
-            drone.set_channel('2', predicted_pitch)
-            drone.set_channel('3', predicted_throttle)
-            drone.set_channel('4', predicted_yaw)
+                #predict
+                predicted = predict(img,data)
+                predicted_roll = predicted[0]
+                predicted_pitch = predicted[1]
+                predicted_yaw = predicted[2]
+                predicted_throttle = predicted[3]
 
-        end_time = time.time()
-        print("RECORDING > FPS: " + str(1/(end_time-start_time)))
+                #write to drone 
+                drone.set_channel('1', predicted_roll)
+                drone.set_channel('2', predicted_pitch)
+                drone.set_channel('3', predicted_throttle)
+                drone.set_channel('4', predicted_yaw)
+
+            end_time = time.time()
+            print("FPS: " + str(1/(end_time-start_time)))
+
+        else: 
+            print("PAUSED")
+            time.sleep(0.1)
 
     return "goal_reached"
 
