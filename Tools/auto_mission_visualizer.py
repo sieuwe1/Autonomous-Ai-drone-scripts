@@ -45,18 +45,18 @@ def load_data(path):
                 if '\n' in section:
                     section = section[0:-1]
                 point = float(section)
-                print(point)
                 if point != 0:
                     data[section_count].append(point)
                 
                 section_count+=1
 
         line_count+=1
+    print("shape data: ",len(data))
     return data
 
 def drawUI(img, data, controls):
-    print(data)
-    print(controls)
+    #print(data)
+    #print(controls)
     cv2.putText(img, "TargetDistance: " + str(data[0]), (50,50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA)     
     cv2.putText(img, "PathDistance: " + str(data[1]), (50,100), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
     cv2.putText(img, "HeadingDelta: " + str(data[2]), (50,150), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
@@ -88,13 +88,16 @@ def plot(data):
     ax.plot(plot_data)
 
 controls_log = np.transpose(load_data(mapped_preds_log))
-#data_log = np.transpose(load_data(data_log))
+data_log = np.transpose(load_data(data_log))
+
+print("data log shape!!!!!!!!!!!!!!! " + str(len(data_log[0])))
 
 def main(i):
     global count
     img = cv2.imread(camera_log_dir + str(count) + '_cam-image.jpg')
 
-    img = drawUI(img, np.array([0,0,0,0,0,0,0,0]), controls_log[count])
+    #@print(data_log[count])
+    img = drawUI(img, data_log[count], controls_log[count])
 
     cv2.imshow("data visualizer", img)
     cv2.waitKey(1)

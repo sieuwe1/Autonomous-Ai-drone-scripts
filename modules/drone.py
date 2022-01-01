@@ -74,10 +74,17 @@ def set_flight_mode(f_mode):
     global vehicle
     vehicle.mode = VehicleMode(f_mode)
 
+def set_param(param, value):
+    global vehicle
+    vehicle.parameters[param] = value
+
 def set_channel(channel, value):
     global vehicle
     vehicle.channels.overrides[channel] = value
-            
+
+def clear_channel(channel):
+    global vehicle
+    vehicle.channels.overrides[channel] = None
 
 def arm():
     vehicle.groundspeed = 3

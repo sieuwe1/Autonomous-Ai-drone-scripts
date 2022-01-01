@@ -3,7 +3,7 @@ from matplotlib import lines
 import matplotlib.pyplot as plt
 import collections
 
-file1 = open('/home/sieuwe/drone/Autonomous-Ai-drone-scripts/predictions_log.txt', 'r')
+file1 = open('/home/drone/Desktop/Autonomous-Ai-drone-scripts/mapped_predictions_log.txt', 'r')
 Lines = file1.readlines()
 
 moving_averages = []
@@ -43,7 +43,9 @@ for d in data:
 
     data2.append((average(moving_averages[0]), average(moving_averages[1]), average(moving_averages[2]), average(moving_averages[3])))
 
-plt.plot(data2)
+print(data)
+
+plt.plot(data)
 plt.ylabel('some numbers')
 plt.legend(['roll', 'pitch', 'yaw', 'throttle'])
 plt.show()

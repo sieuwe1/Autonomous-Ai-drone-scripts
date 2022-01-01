@@ -1,5 +1,7 @@
 # Fly fully autonomous from starting point to target! Dont worry about obstacles our AI should avoid them!
 import sys
+
+from modules.drone import get_mode
 sys.path.insert(1, '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules')
 import drone
 import camera
@@ -93,9 +95,9 @@ def predict(img, data):
     vel_z = map_decimal(data[7], -1.17, 1.07, 0,1)
     
     #predict
-    #data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+    data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
 
-    data = np.array([0.4,0.5,0.1,0.1,0.5,0.1,0.0,0.0])
+   # data = np.array([0.4,0.5,0.1,0.1,0.5,0.1,0.0,0.0])
     
     if debug:
         with open(data_log, 'a') as f:
@@ -136,10 +138,7 @@ def predict(img, data):
             f.write(message)
         f.close()
 
-    print("predicted throttle: ", predicted_throttle)
-    print("predicted yaw: ", predicted_yaw)
-    print("predicted pitch: ", predicted_pitch)
-    print("predicted roll: ", predicted_roll)
+    print("/predicted throttle: " +  str(predicted_throttle) + " /predicted yaw: " + str(predicted_yaw) + " /predicted pitch: " + str(predicted_pitch) + " /predicted roll: " + str(predicted_roll))
 
     return (predicted_roll, predicted_pitch, predicted_yaw, predicted_throttle)
 
@@ -148,7 +147,7 @@ def init():
 
     print("State = INIT -> " + STATE)
 
-    #time.sleep(20)
+    time.sleep(20)
     # create onnx session
     sess = rt.InferenceSession(model_dir)
     inputs = sess.get_inputs()
@@ -158,7 +157,10 @@ def init():
 
     print("FLYING NOW")
     drone.connect_drone('/dev/ttyACM0')
-    #drone.arm_and_takeoff(4)
+
+    drone.set_param('SR2_RAW_CTRL', 30) #change default override frequency
+
+    drone.arm_and_takeoff(4)
     #drone.connect_drone('127.0.0.1:14551')
     return "flight"
 
@@ -174,48 +176,69 @@ def flight():
     print("target location: " + str(target_location))
 
     while True:
-        print(drone.read_channel(record_button_channel))
-        if drone.read_channel(record_button_channel) < 1500:
+        print("Flight mode: " + str(drone.get_mode()))
+        if drone.read_channel(record_button_channel) != None:
+            if drone.read_channel(record_button_channel) < 1500:
+                if drone.get_mode() != "STABILIZE":
+                    drone.set_flight_mode("STABILIZE")
 
-            start_time = time.time()
-            current_cordinate = drone.get_location()
-            current_location = (current_cordinate.lat,current_cordinate.lon)
+                start_time = time.time()
+                current_cordinate = drone.get_location()
+                current_location = (current_cordinate.lat,current_cordinate.lon)
 
-            target_distance, path_distance = gps.calculate_path_distance(target_location, start, current_location)
+                target_distance, path_distance = gps.calculate_path_distance(target_location, start, current_location)
 
-            if target_distance < target_reached_bubble: #check if target is reached 
-                break
-            
-            else:
-                #get data
-                current_heading = drone.get_heading()
-                img = camera.get_video(0)
+                if target_distance < target_reached_bubble: #check if target is reached 
+                    break
+                
+                else:
+                    #get data
+                    current_heading = drone.get_heading()
+                    img = camera.get_video(0)
 
-                heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
-                vel_x, vel_y, vel_z = drone.get_velocity()
-                altitude = drone.get_altitude()
-                speed = drone.get_ground_speed()
-                data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
+                    heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
+                    vel_x, vel_y, vel_z = drone.get_velocity()
+                    altitude = drone.get_altitude()
+                    speed = drone.get_ground_speed()
+                    data = np.array([speed, target_distance, path_distance, heading_delta, altitude, vel_x, vel_y, vel_z])
 
-                #predict
-                predicted = predict(img,data)
-                predicted_roll = predicted[0]
-                predicted_pitch = predicted[1]
-                predicted_yaw = predicted[2]
-                predicted_throttle = predicted[3]
+                    #predict
+                    predicted = predict(img,data)
+                    predicted_roll = predicted[0]
+                    predicted_pitch = predicted[1]
+                    predicted_yaw = predicted[2]
+                    predicted_throttle = predicted[3]
 
-                #write to drone 
-                drone.set_channel('1', predicted_roll)
-                drone.set_channel('2', predicted_pitch)
-                drone.set_channel('3', predicted_throttle)
-                drone.set_channel('4', predicted_yaw)
+                    #write to drone 
+                    drone.set_channel('1', predicted_roll)
+                    drone.set_channel('2', predicted_pitch)
+                    drone.set_channel('3', predicted_throttle)
+                    drone.set_channel('4', predicted_yaw)
 
-            end_time = time.time()
-            print("FPS: " + str(1/(end_time-start_time)))
+                end_time = time.time()
+                print("FPS: " + str(1/(end_time-start_time)))
 
-        else: 
-            print("PAUSED")
-            time.sleep(0.1)
+Maak systeem om overrides te plotten om te kijken of de overrides optijs geschreven worden
+
+Maak mode die de hoogt uit zichzelf behoud
+
+Maak mobilenet met onnx
+
+misschien arduiono die pwm signalen stuurt met usb verbinding aan jetson
+
+            else: 
+                drone.clear_channel('1')
+                drone.clear_channel('2')
+                drone.clear_channel('3')
+                drone.clear_channel('4')
+                if drone.get_mode() != "LOITER":
+                    drone.set_flight_mode("LOITER")
+                print("PAUSED")
+                print("/current throttle: ", str(drone.read_channel(3)) + " /current yaw: ", str(drone.read_channel(4)) + " /current pitch: ", str(drone.read_channel(2)) + " /current roll: ", str(drone.read_channel(1)))
+
+                time.sleep(0.1)
+        else:
+            print("record button not working!")
 
     return "goal_reached"
 
@@ -224,7 +247,7 @@ def goal_reached():
     global frame_count
     print("State = GOAL_REACHED -> " + STATE)
     print("Goal reached! Landing in 20 seconds!")
-    drone.set_flight_mode("LOITER")
+    drone.set_flight_mode("GUIDED")
     time.sleep(20)
     drone.land()
 
