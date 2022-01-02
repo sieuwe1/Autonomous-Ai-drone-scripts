@@ -14,8 +14,8 @@ import tensorflow as tf
 import h5py
 from adabelief_tf import AdaBeliefOptimizer
 
-transfer = False
-model_name = 'Donkeycar_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+transfer = True
+model_name = 'mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 
 training_size = 27292 #get these values from preprocessor
 validation_size = 11696 #get these values from preprocessor
@@ -80,7 +80,7 @@ model = None
 #create model
 if transfer:
     #model, base_model = network.create_transformer_model()
-    #model, base_model = network.create_transfer_model()
+    model, base_model = network.create_transfer_model()
     #model, base_model = network.create_transfer_image_only_model()
 
     for layer in base_model.layers:

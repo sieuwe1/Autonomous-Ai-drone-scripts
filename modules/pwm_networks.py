@@ -9,7 +9,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import models
 from tensorflow.keras import layers
-from tensorflow.keras.applications import InceptionV3, VGG16
+from tensorflow.keras.applications import InceptionV3, VGG16, MobileNetV3Large, MobileNetV3Small
 from keras_pos_embd import PositionEmbedding
 
 #from positional_encodings import PositionalEncodingPermute1D 
@@ -115,7 +115,8 @@ def create_transformer_model(latent_dim=256):
 
 def create_transfer_model():
 
-    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
+    #base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
+    base_model = MobileNetV3Small(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
     #base_model = VGG16(weights='imagenet',include_top=False,input_shape=(300, 300, 3))
     image_input = layers.Input(shape=(300, 300, 3), name='image')
     x = base_model(image_input)

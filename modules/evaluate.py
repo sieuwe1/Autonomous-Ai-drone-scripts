@@ -7,10 +7,11 @@ import h5py
 import network
 from adabelief_tf import AdaBeliefOptimizer
 from sklearn.metrics import mean_squared_error
+import time
 
 transfer = False
-model_name = 'Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/Inception_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_name = 'mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/eval_data.h5'
 #data = np.load(test_dir,allow_pickle=True)
 
@@ -51,17 +52,20 @@ print("Evaluate on test data")
 #%%
 results = []
 for i in range(len(img_x_test)):
+    start_time = time.time()
     sample_to_predict = [img_x_test[i].reshape((1,300,300,3)), np.array(data_x_test[i]).reshape((1,8))]
     
     preds = model.predict(sample_to_predict)
+    end_time = time.time()
+    fps = 1/(end_time-start_time)
 
     pitch_error = abs(y_pitch_test[i]- preds[1][0])  
     yaw_error = abs(y_yaw_test[i] - preds[2][0])
     throttle_error = abs(y_throttle_test[i] - preds[3][0])
 
-    print((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], i))
+    print((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], fps, i))
 
-    results.append((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], i))
+    results.append((y_roll_test[i],preds[0][0][0],y_pitch_test[i], preds[1][0][0], y_yaw_test[i], preds[2][0][0], y_throttle_test[i], preds[3][0][0], fps, i))
 #%%
 results = np.array(results)
 
@@ -69,6 +73,7 @@ roll_mse = mean_squared_error(results[:,0],results[:,1])
 pitch_mse = mean_squared_error(results[:,2],results[:,3])
 yaw_mse = mean_squared_error(results[:,4],results[:,5])
 throttle_mse = mean_squared_error(results[:,6],results[:,7])
+average_fps = average(results[8])
 
 average_mse = (roll_mse+pitch_mse+yaw_mse+throttle_mse) / 4
 
@@ -83,6 +88,8 @@ print("")
 print("Average yaw error: " + str(yaw_mse))
 print("")
 print("Average throttle error: " + str(throttle_mse))
+print("")
+print("FPS: " + str(average_fps ))
 
 fig, axs = plt.subplots(2, 2)
 fig.suptitle(model_name, fontsize=16)

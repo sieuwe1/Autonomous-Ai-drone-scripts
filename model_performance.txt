@@ -73,3 +73,15 @@ Average roll error: 0.03218577372087776
 Average pitch error: 0.04228527377448631
 Average yaw error: 0.022966891773283187
 Average throttle error: 0.03176103005693372
+
+---------------------------------------------------------
+
+Inception linear occi runs en shuffle
+
+--------------------------------------------------------
+
+MobilenetV3 small linear occi runs en shuffle
+
+--------------------------------------------------------
+
+Donkeycar  linear occi runs en shuffle
