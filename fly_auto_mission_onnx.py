@@ -215,16 +215,20 @@ def flight():
                     drone.set_channel('3', predicted_throttle)
                     drone.set_channel('4', predicted_yaw)
 
+                    print("written overwrite: ", predicted_throttle)
+                    print("readed overwrite: ", drone.get_channel_override('3'))
+                    print("readed pwm value: ", drone.read_channel(3))
+
                 end_time = time.time()
                 print("FPS: " + str(1/(end_time-start_time)))
 
-Maak systeem om overrides te plotten om te kijken of de overrides optijs geschreven worden
+#Maak systeem om overrides te plotten om te kijken of de overrides optijs geschreven worden
 
-Maak mode die de hoogt uit zichzelf behoud
+#Maak mode die de hoogt uit zichzelf behoud
 
-Maak mobilenet met onnx
+#Maak mobilenet met onnx
 
-misschien arduiono die pwm signalen stuurt met usb verbinding aan jetson
+#misschien arduiono die pwm signalen stuurt met usb verbinding aan jetson
 
             else: 
                 drone.clear_channel('1')
@@ -248,6 +252,10 @@ def goal_reached():
     print("State = GOAL_REACHED -> " + STATE)
     print("Goal reached! Landing in 20 seconds!")
     drone.set_flight_mode("GUIDED")
+    drone.clear_channel('1')
+    drone.clear_channel('2')
+    drone.clear_channel('3')
+    drone.clear_channel('4')
     time.sleep(20)
     drone.land()
 

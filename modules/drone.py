@@ -78,6 +78,9 @@ def set_param(param, value):
     global vehicle
     vehicle.parameters[param] = value
 
+def get_param(param):
+    return vehicle.parameters[param] 
+
 def set_channel(channel, value):
     global vehicle
     vehicle.channels.overrides[channel] = value
