@@ -3,10 +3,10 @@ from dronekit import *
 vehicle = None 
 
 # Connect to the Vehicle (in this case a UDP endpoint)
-def connect_drone(connection_string):
+def connect_drone(connection_string, waitready=True, baudrate=57600):
     global vehicle
     if vehicle == None:
-        vehicle = connect(connection_string, wait_ready=True, baud=57600)
+        vehicle = connect(connection_string, wait_ready=waitready, baud=baudrate)
     print("drone connected")
 
 def disconnect_drone():
@@ -74,12 +74,30 @@ def set_flight_mode(f_mode):
     global vehicle
     vehicle.mode = VehicleMode(f_mode)
 
+def set_param(param, value):
+    global vehicle
+    vehicle.parameters[param] = value
+
+def get_param(param):
+    return vehicle.parameters[param] 
+
 def set_channel(channel, value):
     global vehicle
     vehicle.channels.overrides[channel] = value
-            
+
+def clear_channel(channel):
+    global vehicle
+    vehicle.channels.overrides[channel] = None
+    
+def get_channel_override(channel):
+    return vehicle.channels.overrides[channel]
+          
+def disarm():
+    global vehicle
+    vehicle.armed = False
 
 def arm():
+    global vehicle
     vehicle.groundspeed = 3
 
     print ("Basic pre-arm checks")

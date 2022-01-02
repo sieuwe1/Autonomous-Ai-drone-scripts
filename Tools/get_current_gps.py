@@ -1,3 +1,4 @@
+#get current GPS location cordinates
 import sys
 sys.path.insert(1, 'modules')
 import drone

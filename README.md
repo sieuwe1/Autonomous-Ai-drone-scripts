@@ -69,6 +69,12 @@ python3 data_plotter.py
 
 Ensure the file name in the script is set to the correct debug file. This can be done by editing the `data_plotter.py` script.
 
+### keras to tensorRT model
+
+For faster execution tansform keras model to tensorRT. (models in repo have been converted already!) Use tf2onnx tool for this.
+
+python -m tf2onnx.convert --saved-model tensorflow-model-path --output model.onnx
+
 ## Note
 
 This project is still under heavy development. All code is experimental so please use the code with caution! We are not responsible for damage to people or property from the usage of these scripts.
