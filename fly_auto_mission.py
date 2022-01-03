@@ -18,8 +18,8 @@ from matplotlib.animation import FuncAnimation
 import onnxruntime as rt
 import os
 #-------config----------
-flight_altitude = 4 #meters
-target_location = (51.4504757, 5.4546918) #location for drone to fly to and land 
+flight_altitude = 0 #meters
+target_location = (52.1127653, 5.4930960) #location for drone to fly to and land 
 target_reached_bubble = 5 #when vehicle is within 5m range from target it has reached the target
 model_dir ="/home/drone/Desktop/Autonomous-Ai-drone-scripts/model/Donkeycar_velocity.onnx"
 data_log = "data_log.txt"
@@ -91,25 +91,30 @@ def predict(img, data):
     #vel_y = map_decimal(data[4], -3.03, 1.46, 0,1)    
     vel_x = map_decimal(data[3], -4.05, 5.59, 0,1)
     vel_y = map_decimal(data[4], -4.2, 1.46, 0,1)
-    t_min_1_yaw = data[5]
+    vel_z = map_decimal(data[5], -1.17, 1.07, 0,1) #removed in future models!
+    t_min_1_yaw = data[6]
 
     #create data
-    data = np.array([target_distance, path_distance, heading_delta, vel_x, vel_y, t_min_1_yaw])
-   # data = np.array([0.4,0.5,0.1,0.1,0.5,0.1,0.0,0.0]) 
+    data = np.array([target_distance, path_distance, heading_delta, vel_x, vel_y, vel_z, t_min_1_yaw])
+
+    #data = np.array([0.1,0.1,0.0,vel_x,vel_y,vel_z,t_min_1_yaw]) 
+
     if debug:
         with open(data_log, 'a') as f:
-            message = str(data[0]) + "," + str(data[1]) + "," + str(data[2]) + "," + str(data[3]) + "," + str(data[4]) + "," + str(data[5]) + "," + str(data[6]) + "," + str(data[7]) +"\n"
+            message = str(data[0]) + "," + str(data[1]) + "," + str(data[2]) + "," + str(data[3]) + "," + str(data[4]) + "," + str(data[5]) +"\n"
             f.write(message)
         f.close()
     print("input data: ", data)
-    sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,6))]
+    sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,7))]
     
     #predict
     preds = sess.run(None, {inputs[0].name: sample_to_predict[0].astype(np.float32), inputs[1].name: sample_to_predict[1].astype(np.float32)})
 
+    print("preds: ", preds)
+
     if debug:
         with open(preds_log, 'a') as f:
-            message = str(preds[0][0][0]) + "," + str(preds[1][0][0]) + "," + str(preds[2][0][0]) + "," + str(preds[3][0][0]) +"\n"
+            message = str(preds[0][0][0]) + "," + str(preds[1][0][0]) + "," + str(preds[2][0][0]) + "\n"
             f.write(message)
         f.close()
 
@@ -123,8 +128,8 @@ def predict(img, data):
     smooth_predicted_yaw = average(moving_averages[2])
 
     #scale predicted (0 to 1) to actual scale using bounderies from train set
-    predicted_vel_x = map(smooth_predicted_vel_x, 0, 1, -4.05, 4.25)
-    predicted_vel_y = map(smooth_predicted_vel_y, 0, 1, -4.2, 5.59)
+    predicted_vel_x = map_decimal(smooth_predicted_vel_x, 0, 1, -4.05, 4.25)
+    predicted_vel_y = map_decimal(smooth_predicted_vel_y, 0, 1, -4.2, 5.59)
     predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
 
     if debug:
@@ -133,7 +138,7 @@ def predict(img, data):
             f.write(message)
         f.close()
 
-    print("predicted yaw (PWM): " + str(predicted_yaw) + " /predicted pitch (m/s): " + str(predicted_vel_x) + " /predicted roll (m/s): " + str(predicted_vel_y))
+    print("predicted yaw (PWM): " + str(predicted_yaw) + " /predicted vel x (m/s): " + str(predicted_vel_x) + " /predicted vel y (m/s): " + str(predicted_vel_y))
     return (predicted_vel_x, predicted_vel_y, predicted_yaw, t_min_1_yaw)
 
 def init():
@@ -158,7 +163,8 @@ def init():
 
 
 def flight():
-    t_min_1_pred_yaw = 0.0
+    t_min_1_pred_yaw = 0.7
+    target_not_reached = True
 
     print("State = FLIGHT -> " + STATE)
 
@@ -168,8 +174,11 @@ def flight():
     print("start location: " + str(start))
     print("target location: " + str(target_location))
 
-    while True:
+    while target_not_reached:
         print("Flight mode: " + str(drone.get_mode()))
+
+        print("record button: ", drone.read_channel(record_button_channel))
+
         if drone.read_channel(record_button_channel) != None:
             if drone.read_channel(record_button_channel) < 1500:
 
@@ -180,16 +189,18 @@ def flight():
                 target_distance, path_distance = gps.calculate_path_distance(target_location, start, current_location)
 
                 if target_distance < target_reached_bubble: #check if target is reached 
-                    break
-                
+                    target_not_reached = False
+                    print("target_not_reached: ", target_not_reached)
+
                 else:
                     #get data
                     current_heading = drone.get_heading()
-                    img = camera.get_video(0)
+                    #img = camera.get_video(0)
+                    img = cv2.imread("/home/drone/Desktop/recordings/RunOcciTest/left_camera/66_cam-image.jpg")
 
                     heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
                     vel_x, vel_y, vel_z = drone.get_velocity()
-                    data = np.array([target_distance, path_distance, heading_delta,vel_x, vel_y, t_min_1_pred_yaw])
+                    data = np.array([target_distance, path_distance, heading_delta,vel_x, vel_y, vel_z, t_min_1_pred_yaw])
 
                     #predict
                     predicted = predict(img,data)
@@ -214,6 +225,7 @@ def flight():
                 time.sleep(0.1)
         else:
             print("record button not working!")
+            time.sleep(0.1)
 
     return "goal_reached"
 
