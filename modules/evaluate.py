@@ -1,17 +1,17 @@
 #%%
 from numpy.lib.function_base import average, median
 from tensorflow import keras
+import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-import network
 from adabelief_tf import AdaBeliefOptimizer
 from sklearn.metrics import mean_squared_error
 import time
 
 transfer = False
-model_name = 'mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
-model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/modules/mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_name = 'mobilenetv3large_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/mobilenetv3large_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/full_set_shuffle_linear/eval_data.h5'
 #data = np.load(test_dir,allow_pickle=True)
 
@@ -34,15 +34,9 @@ hf.close()
 
 model = None
 
-#create model
-if transfer:
-    model, base_model = network.create_transfer_model()
-    model.load_weights(model_dir)
-
-else:
-    custom_objects = {"AdaBeliefOptimizer": AdaBeliefOptimizer}
-    with keras.utils.custom_object_scope(custom_objects):
-        model = keras.models.load_model(model_dir)
+custom_objects = {"AdaBeliefOptimizer": AdaBeliefOptimizer}
+with keras.utils.custom_object_scope(custom_objects):
+    model = keras.models.load_model(model_dir)
 
 print(model.summary())
 
@@ -73,7 +67,7 @@ roll_mse = mean_squared_error(results[:,0],results[:,1])
 pitch_mse = mean_squared_error(results[:,2],results[:,3])
 yaw_mse = mean_squared_error(results[:,4],results[:,5])
 throttle_mse = mean_squared_error(results[:,6],results[:,7])
-average_fps = average(results[8])
+average_fps = average(results[:,8])
 
 average_mse = (roll_mse+pitch_mse+yaw_mse+throttle_mse) / 4
 
@@ -90,6 +84,8 @@ print("")
 print("Average throttle error: " + str(throttle_mse))
 print("")
 print("FPS: " + str(average_fps ))
+print("")
+print("Memory peak: " + str(tf.config.experimental.get_memory_info('GPU:0')['peak']))
 
 fig, axs = plt.subplots(2, 2)
 fig.suptitle(model_name, fontsize=16)

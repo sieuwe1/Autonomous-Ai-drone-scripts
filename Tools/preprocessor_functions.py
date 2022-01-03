@@ -35,7 +35,7 @@ def augment_images(images, data):
 
 ##folder loading methods
 
-def load_folder(data_folder):
+def load_folder(data_folder, steps):
 
     #file_count = sum([len(files) for r, d, files in os.walk(data_folder)])
     #print(file_count)
@@ -80,7 +80,7 @@ def load_folder(data_folder):
                 images.append(img)
                 data.append(sample)
                 sample_count+=1
-            fcount += 1
+            fcount += steps
 
     return (data,images, sample_count)
 
@@ -153,7 +153,6 @@ def normalize_min_max(data, sample_count):
     data_scaled = min_max_scaler.fit_transform(data)
 
     return (min_max_scaler.data_min_ ,min_max_scaler.data_max_ ), data_scaled[:,4:11], data_scaled[:,0], data_scaled[:,1], data_scaled[:,2], data_scaled[:,3]
-
 
 def normalize_data_linear(data, sample_count):
 

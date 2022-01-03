@@ -42,6 +42,8 @@ def setup():
     else:
         print("MODE = test")
         control.connect_drone('127.0.0.1:14551')
+    
+    control.set_flight_altitude(MAX_ALT) #new never tested!
 
 setup()
 

@@ -190,22 +190,22 @@ def send_movement_command_YAW(heading):
     vehicle.send_mavlink(msg)
     #Vehicle.commands.flush()
 
-def send_movement_command_XYZ(velocity_x, velocity_y, velocity_z):
+def send_movement_command_XYA(velocity_x, velocity_y, altitude):
     global vehicle
 
     #velocity_x positive = forward. negative = backwards
     #velocity_y positive = right. negative = left
     #velocity_z positive = down. negative = up (Yes really!)
 
-    print("Sending XYZ movement command with v_x(forward/backward): %f v_y(right/left): %f v_z(height): %f" % (velocity_x,velocity_y,velocity_z))
+    print("Sending XYZ movement command with v_x(forward/backward): %f v_y(right/left): %f " % (velocity_x,velocity_y))
 
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,      
         0, 0,    
-        mavutil.mavlink.MAV_FRAME_BODY_NED, # relative to drone heading
-        0b0000111111000111, 
-        0, 0, 0,
-        velocity_x, velocity_y, velocity_z, 
+        mavutil.mavlink.MAV_FRAME_BODY_NED,  #relative to drone heading pos relative to EKF origin
+        0b0000111111100011, #ignore velocity z and other pos arguments
+        0, 0, altitude,
+        velocity_x, velocity_y, 0, 
         0, 0, 0, 
         0, 0)    
 

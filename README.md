@@ -1,6 +1,6 @@
 # Fully autonomous AI powered drone
 <p align="center">
-<img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/logo.png" alt="drawing" width="600" />
+<img src="https://github.com/sieuwe1/Autonomous-AI-drone-scripts/raw/main/demo_media/logo.png" alt="drawing" width="600" />
 </p align="center">
   
 This repository pushes to create an state of the art fully autonomous navigation and obstacle avoidance system for multi rotor vehicles. Our approach is based on the novel idea of an fully END-2-END AI model which takes the sensor inputs and directly output the desired control commands for the drone. Currently we are working on creating the necessary code for training and running this approach. 

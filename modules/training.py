@@ -15,7 +15,7 @@ import h5py
 from adabelief_tf import AdaBeliefOptimizer
 
 transfer = True
-model_name = 'mobilenetv3small_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
+model_name = 'mobilenetv3large_new_preprocessor_shuffled_occi_linear_in_linear_out_sigmoid_lr_0.001.h5'
 
 training_size = 27292 #get these values from preprocessor
 validation_size = 11696 #get these values from preprocessor

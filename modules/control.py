@@ -25,6 +25,7 @@ movementRollAngle = 0
 inputValueYaw = 0
 inputValueVelocityX = 0
 control_loop_active = True
+flight_altitude = 4
 
 debug_yaw = None
 debug_velocity = None
@@ -70,6 +71,10 @@ def setZDelta(ZDelta):
 def set_system_state(current_state):
     global state
     state = current_state
+
+def set_flight_altitude(alt):
+    global flight_altitude
+    flight_altitude = alt
 # end control functions
 
 #drone functions
@@ -111,13 +116,13 @@ def control_drone():
         debug_writer_YAW(movementYawAngle)
 
     if inputValueVelocityX == 0:
-        drone.send_movement_command_XYZ(0,0,0)
+        drone.send_movement_command_XYA(0, 0,flight_altitude)
     else:
         movementRollAngle = (pidRoll(inputValueVelocityX) * -1)
-        drone.send_movement_command_XYZ(movementRollAngle, 0, 0)
+        drone.send_movement_command_XYA(movementRollAngle, 0,flight_altitude)
         debug_writer_ROLL(movementRollAngle)
 
 def stop_drone():
     drone.send_movement_command_YAW(0)
-    drone.send_movement_command_XYZ(0,0,0)
+    drone.send_movement_command_XYA(0, 0,flight_altitude)
     

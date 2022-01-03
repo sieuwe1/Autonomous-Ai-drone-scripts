@@ -72,10 +72,11 @@ def plot_histogram(data,key):
 data = load_folder(data_folder)
 
 
-plot_histogram(data,0)
-plot_histogram(data,1)
-plot_histogram(data,2)
-plot_histogram(data,3)
+
+
+plot_histogram(data,9)
+plot_histogram(data,10)
+plot_histogram(data,11)
 
 # plt.plot(data[:,5])
 key = 0
