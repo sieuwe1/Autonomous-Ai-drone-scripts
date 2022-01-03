@@ -195,8 +195,7 @@ def flight():
                 else:
                     #get data
                     current_heading = drone.get_heading()
-                    #img = camera.get_video(0)
-                    img = cv2.imread("/home/drone/Desktop/recordings/RunOcciTest/left_camera/66_cam-image.jpg")
+                    img = camera.get_video(0)
 
                     heading_delta = gps.calculate_heading_difference(current_heading, target_location, current_location)
                     vel_x, vel_y, vel_z = drone.get_velocity()
