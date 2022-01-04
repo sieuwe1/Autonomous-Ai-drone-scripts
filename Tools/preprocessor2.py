@@ -48,7 +48,7 @@ if evaluation_data:
     y_vel_y_train =  np.roll(data_x_train[:,6],1)
     y_yaw_train = np.roll(yaw_train,1)
 
-    data_x_train = np.delete(data_x_train, [0,4], 1)
+    data_x_train = np.delete(data_x_train, [0,4,7], 1)
     data_x_train = np.hstack((data_x_train,yaw_train))
  
     print(data_x_train.shape)
@@ -100,8 +100,8 @@ else:
     print("y_vel_x_train ", y_vel_x_val)
     print("y_vel_x_train shape", y_vel_x_val.shape)
 
-    data_x_val = np.delete(data_x_val, [0,4], 1)
-    data_x_train = np.delete(data_x_train, [0,4], 1)
+    data_x_val = np.delete(data_x_val, [0,4,7], 1)
+    data_x_train = np.delete(data_x_train, [0,4,7], 1)
     data_x_val = np.hstack((data_x_val,yaw_val))
     data_x_train = np.hstack((data_x_train,yaw_train))
     print(data_x_train.shape)
