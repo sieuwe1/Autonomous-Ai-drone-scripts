@@ -139,7 +139,7 @@ def predict(img, data):
         f.close()
 
     print("predicted yaw (PWM): " + str(predicted_yaw) + " /predicted vel x (m/s): " + str(predicted_vel_x) + " /predicted vel y (m/s): " + str(predicted_vel_y))
-    return (predicted_vel_x, predicted_vel_y, predicted_yaw, t_min_1_yaw)
+    return (predicted_vel_x, predicted_vel_y, predicted_yaw, smooth_predicted_yaw)
 
 def init():
     global sess, inputs 
@@ -163,7 +163,7 @@ def init():
 
 
 def flight():
-    t_min_1_pred_yaw = 0.7
+    t_min_1_pred_yaw = 0.6
     target_not_reached = True
 
     print("State = FLIGHT -> " + STATE)
