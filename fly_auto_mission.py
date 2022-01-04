@@ -18,7 +18,7 @@ from matplotlib.animation import FuncAnimation
 import onnxruntime as rt
 import os
 #-------config----------
-flight_altitude = 4 #meters
+flight_altitude = 3 #meters
 target_location = (51.4504757, 5.4546918) #location for drone to fly to and land 
 target_reached_bubble = 5 #when vehicle is within 5m range from target it has reached the target
 model_dir ="/home/drone/Desktop/Autonomous-Ai-drone-scripts/model/Donkeycar_velocity.onnx"

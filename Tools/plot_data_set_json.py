@@ -63,7 +63,7 @@ def plot_histogram(data,key):
 
     fig, axs = plt.subplots(2)
 
-    axs[0].hist(data4[:,key], density=True, bins=60)
+    axs[0].hist(data[:,key], density=True, bins=60)
 
     axs[1].hist(data3[:,key], density=True, bins=60)
 
@@ -72,14 +72,10 @@ def plot_histogram(data,key):
 data = load_folder(data_folder)
 
 
-
-
 plot_histogram(data,9)
 plot_histogram(data,10)
-plot_histogram(data,11)
 
 # plt.plot(data[:,5])
-key = 0
 
 #plot_data = (data[:,key] - data[:,key].min()) / data[:,key].max()
 #plt.hist(plot_data, density=True, bins=int(100 * plot_data.std()))

@@ -15,7 +15,7 @@ import h5py
 from adabelief_tf import AdaBeliefOptimizer
 
 transfer = False
-model_name = 'Donkeycar_VELOCITY.h5'
+model_name = 'Donkeycar_VELOCITY_no_velocity_in.h5'
 
 training_size = 13648 #get these values from preprocessor
 validation_size = 5848 #get these values from preprocessor
@@ -43,7 +43,7 @@ class data_generator(keras.utils.Sequence):
             #load train data
             hf = h5py.File(train_folder + "/"  + train_file_names[index], 'r')
             img_x_train = np.array(hf.get('img_x_train'))
-            data_x_train = np.array(hf.get('data_x_train'))
+            data_x_train = np.delete(np.array(hf.get('data_x_train')),[3,4,5,6], 1)
             y_vel_x_train = np.array(hf.get('y_vel_x_train'))
             y_vel_y_train = np.array(hf.get('y_vel_y_train'))
             y_yaw_train = np.array(hf.get('y_yaw_train'))
@@ -61,7 +61,7 @@ class data_generator(keras.utils.Sequence):
         else:
             hf = h5py.File(val_folder + "/" + val_file_names[index], 'r')
             img_x_val = np.array(hf.get('img_x_val'))
-            data_x_val = np.array(hf.get('data_x_val'))
+            data_x_val = np.delete(np.array(hf.get('data_x_val')),[3,4,5,6], 1)
             y_vel_x_val = np.array(hf.get('y_vel_x_val'))
             y_vel_y_val = np.array(hf.get('y_vel_y_val'))
             y_yaw_val = np.array(hf.get('y_yaw_val'))
@@ -86,7 +86,7 @@ if transfer:
     test = 0
 
 else:
-    model = velocity_networks.donkeycar_model_no_height_control()
+    model = velocity_networks.donkeycar_model_no_height_control_no_velocity()
 
 # compile model
 crit = tf.keras.losses.Huber(delta=1.0, reduction="auto", name="huber_loss")

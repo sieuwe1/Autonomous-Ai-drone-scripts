@@ -25,6 +25,7 @@ test_dir = '/home/drone/Desktop/Autonomous-Ai-drone-scripts/data/sets/VELOCITY_f
 
 hf = h5py.File(test_dir, 'r')
 img_x_test = np.array(hf.get('img_x_train'))
+#data_x_test = np.delete(np.array(hf.get('data_x_train')),[3,4,5,6], 1)
 data_x_test = np.array(hf.get('data_x_train'))
 y_vel_x_test = np.array(hf.get('y_vel_x_train'))
 y_vel_y_test = np.array(hf.get('y_vel_y_train'))
@@ -41,7 +42,6 @@ print(model.summary())
 
 print("Evaluate on test data")
 
-#sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,8))]
 #%%
 results = []
 for i in range(len(img_x_test)):

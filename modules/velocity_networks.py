@@ -61,6 +61,53 @@ def donkeycar_model_no_height_control():
     return model
 
 #---------------------------------------------------------------------------------
+# Basic model without velocity help based on Donkeycar
+
+def donkeycar_model_no_height_control_no_velocity():  
+    input_shape = (300, 300, 3)
+    
+    img_in = layers.Input(shape=input_shape, name='img_in')
+
+    #targetdistance, pathdistance, headingdelta, x at T, y at T, yaw_pwm at T
+    metadata = layers.Input(shape=(3,), name="path_distance_in")
+
+    x = img_in
+    x = layers.Convolution2D(24, (5, 5), strides=(2, 2), activation='relu')(x)
+    x = layers.Convolution2D(32, (5, 5), strides=(2, 2), activation='relu')(x)
+    x = layers.Convolution2D(64, (3, 3), strides=(2, 2), activation='relu')(x)
+    x = layers.Convolution2D(64, (3, 3), strides=(2, 2), activation='relu')(x)
+    x = layers.Convolution2D(64, (3, 3), strides=(1, 1), activation='relu')(x)
+    x = layers.Flatten(name='flattened')(x)
+    x = layers.Dense(100, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+    x = layers.Dense(100, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+
+    y = metadata
+    y = layers.Dense(14, activation='relu')(y)
+    y = layers.Dense(28, activation='relu')(y)
+    y = layers.Dense(56, activation='relu')(y)
+
+    z = layers.concatenate([x, y])
+    z = layers.Dense(50, activation='relu')(z)
+    z = layers.Dropout(.1)(z)
+    z = layers.Dense(50, activation='relu')(z)
+    z = layers.Dropout(.1)(z)
+
+    outputs = []  # will be vel_x at T+1, vel_y at T+1, yaw pwm at T+1
+
+    for i in range(3):
+        a = layers.Dense(64, activation='relu')(z)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        outputs.append(layers.Dense(1, activation='linear', name='output' + str(i))(a)) 
+
+    model = models.Model(inputs=[img_in, metadata], outputs=outputs)
+
+    return model
+
+#---------------------------------------------------------------------------------
 # series model based on Donkeycar
 
 def create_image_encoder(img_in):
