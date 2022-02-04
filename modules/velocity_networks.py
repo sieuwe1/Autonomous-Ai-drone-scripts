@@ -1,14 +1,15 @@
 #these networks predict velocity components and use other inputs then the pwm based networks
-import imp
 import os
 import numpy as np
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import utils
 from tensorflow.keras import models
 from tensorflow.keras import layers
 from tensorflow.keras.applications import InceptionV3, VGG16, MobileNetV3Large, MobileNetV3Small
 from keras_pos_embd import PositionEmbedding
+from tensorflow.python.keras.backend import flatten
 from tensorflow.python.keras.utils.layer_utils import print_summary
 
 # CNN + Dense models
@@ -172,7 +173,63 @@ def series_donkeycar_model_no_height_control():
     return model
 
 #---------------------------------------------------------------------------------
-# Transfer learning model 
+# Transfer learning model with LSTM
+
+def mobilenet_LSTM_MLP_2(metadata):
+    y = metadata
+    y = layers.Dense(14, activation='relu')(y)
+    y = layers.Dense(28, activation='relu')(y)
+    y = layers.Dense(56, activation='relu')(y)
+    return y
+
+def mobilenet_LSTM():  
+    input_shape = (300, 300, 3)
+
+    #targetdistance, pathdistance, headingdelta, x at T, y at T, yaw_pwm at T
+    metadata1 = layers.Input(shape=(3,), name="meta1")
+    metadata2 = layers.Input(shape=(3,), name="meta2")
+    metadata3 = layers.Input(shape=(3,), name="meta3")
+    metadata4 = layers.Input(shape=(3,), name="meta4")
+
+    img_in = layers.Input(shape=(300, 300, 3), name='image1')
+
+    base_model = MobileNetV3Small(weights='imagenet', include_top=False, input_shape=(300, 300, 3), pooling='avg')
+    x = base_model(img_in)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(.1)(x)
+
+    y1 = mobilenet_LSTM_MLP_2(metadata1)
+    y2 = mobilenet_LSTM_MLP_2(metadata2)
+    y3 = mobilenet_LSTM_MLP_2(metadata3)
+    y4 = mobilenet_LSTM_MLP_2(metadata4)
+
+    y = layers.concatenate([y1, y2, y3, y4]) 
+    y = layers.Reshape((4,56))(y)
+
+    y = layers.LSTM(128, input_shape=(4,56))(y)
+
+    z = layers.concatenate([x,y])
+
+    z = layers.Dense(128, activation='relu')(z)
+    z = layers.Dropout(.1)(z)
+    z = layers.Dense(128, activation='relu')(z)
+    z = layers.Dropout(.1)(z)
+
+    outputs = []  # will be vel_x at T+1, vel_y at T+1, yaw pwm at T+1
+
+    for i in range(3):
+        a = layers.Dense(64, activation='relu')(z)
+        a = layers.Dropout(.1)(a)
+        a = layers.Dense(64, activation='relu')(a)
+        a = layers.Dropout(.1)(a)
+        outputs.append(layers.Dense(1, activation='linear', name='output' + str(i))(a)) 
+
+    model = models.Model(inputs=[img_in, metadata1, metadata2, metadata3, metadata4], outputs=outputs)
+
+    return model
+
 
 #---------------------------------------------------------------------------------
 # Serie Transfer learning model 
@@ -181,6 +238,6 @@ def series_donkeycar_model_no_height_control():
 
 # CNN + Transformer models
 
-#model = series_donkeycar_model_no_height_control()
+model = mobilenet_LSTM()
 
-#print_summary(model)
+utils.plot_model(model,"model.png",show_shapes=True)

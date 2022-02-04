@@ -54,18 +54,15 @@ def load_folder(data_folder):
 def plot_histogram(data,key):
     trans = RobustScaler(quantile_range=(50, 50))
     data2 = trans.fit_transform(data) 
+    fig, axs = plt.subplots(2,2)
 
-    min_max_scaler = MinMaxScaler()
-    data3 = min_max_scaler.fit_transform(data2)   
+    axs[0,0].hist(data[:,0], density=True, bins=60)
 
-    min_max_scaler2 = MinMaxScaler()
-    data4 = min_max_scaler2.fit_transform(data)
+    axs[1,0].hist(data[:,1], density=True, bins=60)
 
-    fig, axs = plt.subplots(2)
+    axs[0,1].hist(data[:,2], density=True, bins=60)
 
-    axs[0].hist(data[:,key], density=True, bins=60)
-
-    axs[1].hist(data3[:,key], density=True, bins=60)
+    axs[1,1].hist(data[:,3], density=True, bins=60)
 
     plt.show()
 
@@ -73,7 +70,6 @@ data = load_folder(data_folder)
 
 
 plot_histogram(data,9)
-plot_histogram(data,10)
 
 # plt.plot(data[:,5])
 
