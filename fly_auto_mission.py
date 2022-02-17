@@ -18,8 +18,8 @@ from matplotlib.animation import FuncAnimation
 import onnxruntime as rt
 import os
 #-------config----------
-flight_altitude = 3 #meters
-target_location = (51.4504757, 5.4546918) #location for drone to fly to and land 
+flight_altitude = 1.5 #3 #meters
+target_location = (52.1120628, 5.4923795) #location for drone to fly to and land 
 target_reached_bubble = 5 #when vehicle is within 5m range from target it has reached the target
 model_dir ="/home/drone/Desktop/Autonomous-Ai-drone-scripts/model/Donkeycar_velocity.onnx"
 data_log = "data_log.txt"
@@ -36,7 +36,6 @@ sess = None
 inputs = None
 moving_averages = []
 frame_count = 0
-
 
 for i in range(4):
     moving_averages.append(collections.deque(maxlen=moving_average_length))
@@ -79,10 +78,17 @@ def predict(img, data):
     if debug:
         write_image(img)
 
+    #log inputs
+    print("IN: Target D: " + str(data[0]) + " /Path D: " + str(data[1]) + " /Heading: " + str(data[2]) + " /vel_x: " + str(data[3]) + " /vel_y: " + str(data[4]) + " /t-1 yaw: " + str(data[6]))
+    if debug:
+        with open(data_log, 'a') as f:
+            message = str(data[0]) + "," + str(data[1]) + "," + str(data[2]) + "," + str(data[3]) + "," + str(data[4]) + "," + str(data[5]) +"\n"
+            f.write(message)
+        f.close()
+
     # scale image from (0 to 255) to (0 to 1)
     img = cv2.resize(img, (300,300), interpolation = cv2.INTER_AREA)
     normalizedImg = imagenet_utils.preprocess_input(img, data_format=None, mode='tf') #inception uses 'tf' mode
-
     # scale data from ranges to (0 to 1) using bounderies from training set
     target_distance = map_decimal(data[0], 0.58633466, 122.54361174, 0,1)
     path_distance = map_decimal(data[1], 0, 71.14772674, 0,1)
@@ -96,22 +102,14 @@ def predict(img, data):
 
     #create data
     data = np.array([target_distance, path_distance, heading_delta, vel_x, vel_y, vel_z, t_min_1_yaw])
-
     #data = np.array([0.1,0.1,0.0,vel_x,vel_y,vel_z,t_min_1_yaw]) 
-
-    if debug:
-        with open(data_log, 'a') as f:
-            message = str(data[0]) + "," + str(data[1]) + "," + str(data[2]) + "," + str(data[3]) + "," + str(data[4]) + "," + str(data[5]) +"\n"
-            f.write(message)
-        f.close()
-    print("input data: ", data)
     sample_to_predict = [normalizedImg.reshape((1,300,300,3)), data.reshape((1,7))]
     
     #predict
     preds = sess.run(None, {inputs[0].name: sample_to_predict[0].astype(np.float32), inputs[1].name: sample_to_predict[1].astype(np.float32)})
 
-    print("preds: ", preds)
-
+    #log predictions
+    print("OUT RAW: vel_x:" + str(preds[0][0][0]) + "vel_y:" + str(preds[1][0][0]) + "yaw:" + str(preds[2][0][0]))
     if debug:
         with open(preds_log, 'a') as f:
             message = str(preds[0][0][0]) + "," + str(preds[1][0][0]) + "," + str(preds[2][0][0]) + "\n"
@@ -132,13 +130,13 @@ def predict(img, data):
     predicted_vel_y = map_decimal(smooth_predicted_vel_y, 0, 1, -4.2, 5.59)
     predicted_yaw = map(smooth_predicted_yaw, 0, 1, 1000, 2000)
 
+    #log mapped values
+    print("OUT MAP: Vel_x: " + str(predicted_vel_x) + " /Vel_y: " + str(predicted_vel_y) + " /Yaw: " + str(predicted_yaw))
     if debug:
         with open(mapped_preds_log, 'a') as f:
             message = str(predicted_vel_x) + "," + str(predicted_vel_y) + "," + str(predicted_yaw) +"\n"
             f.write(message)
         f.close()
-
-    print("predicted yaw (PWM): " + str(predicted_yaw) + " /predicted vel x (m/s): " + str(predicted_vel_x) + " /predicted vel y (m/s): " + str(predicted_vel_y))
     return (predicted_vel_x, predicted_vel_y, predicted_yaw, smooth_predicted_yaw)
 
 def init():
@@ -210,8 +208,7 @@ def flight():
 
                     #write to drone 
                     drone.send_movement_command_XYA(predicted_vel_x, predicted_vel_y, flight_altitude)
-                    drone.set_channel('4', predicted_yaw)
-
+#                    drone.set_channel('4', predicted_yaw)
                     
                 end_time = time.time()
                 print("FPS: " + str(1/(end_time-start_time)))
