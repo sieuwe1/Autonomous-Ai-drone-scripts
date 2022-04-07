@@ -16,7 +16,9 @@ This video shows the performance of our End-2-End AI based pilot compared to a h
 
 Just take a look at how the Ai pilot avoids threes just like the human pilot!
 
-All tooling for gathering, training and validating Ai based pilots for pixhawk based multi rotors are avalible in this repo.
+~~All tooling for gathering, training and validating Ai based pilots for pixhawk based multi rotors are avalible in this repo.~~
+
+The Autonomous Point To Point navigation system based on End-2-End technology is currently become property of MRR drones. multirotorresearch.com. As MRR we are still dedicated to release awsome Open Source Software. However we do want to protect our software from being used by others to sell. This is why we will be working on creating a Open source version of our AI based pilot which anyone can use for free. However all tooling and method for creating these models will stay secret. But we will publish fully trained models for free!
 
 ## Autonomous Person Following Flight Demo 
 <p align="center">
